@@ -1,11 +1,37 @@
-function EditBook() {
-    return (
-        <div>
-            <h1>Edit Book</h1>
+import BookForm from "../components/BookForm";
 
-            <p>Edit book information here.</p>
-        </div>
-    );
+function EditBook({ editingBook, books, setBooks, setEditingBook }) {
+
+  if (!editingBook) {
+    return null;
+  }
+
+  function handleEditBook(updatedBook) {
+    const updatedBooks = books.map((book) => {
+      if (book.id === editingBook.id) {
+        return {
+          ...book,
+          ...updatedBook,
+        };
+      }
+
+      return book;
+    });
+
+    setBooks(updatedBooks);
+    setEditingBook(null);
+  }
+
+  return (
+    <div>
+      <h1>Edit Book</h1>
+
+      <BookForm
+        book={editingBook}
+        onSubmit={handleEditBook}
+      />
+    </div>
+  );
 }
 
 export default EditBook;

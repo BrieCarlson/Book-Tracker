@@ -9,19 +9,26 @@ import initialBooks from "./data/books";
 
 function App() {
   const [books, setBooks] = useState(initialBooks);
+  const [editingBook, setEditingBook] = useState(null);
 
   return (
     <div>
       <Home />
 
-      <Books books={books} />
-
-      <AddBook 
+      <Books 
         books={books}
         setBooks={setBooks}
+        setEditingBook={setEditingBook}
       />
 
-      <EditBook />
+      <AddBook setBooks={setBooks} />
+
+      <EditBook 
+        editingBook={editingBook}
+        books={books}
+        setBooks={setBooks}
+        setEditingBook={setEditingBook}
+      />
     </div>
   );
 }
