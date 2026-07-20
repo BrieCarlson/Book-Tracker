@@ -1,9 +1,17 @@
-function BookCard({ book, setBooks, setEditingBook }) {
+import { useNavigate } from "react-router-dom";
+
+function BookCard({ book, setBooks }) {
+  const navigate = useNavigate();
 
   function handleDelete() {
-    setBooks((currentBooks) =>
-      currentBooks.filter((currentBook) => currentBook.id !== book.id)
-    );
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${book.title}"?`
+    )
+      if(confirmed) {
+      setBooks((currentBooks) =>
+        currentBooks.filter((currentBook) => currentBook.id !== book.id)
+      );
+    }
   }
   return (
     <div>
@@ -33,7 +41,7 @@ function BookCard({ book, setBooks, setEditingBook }) {
             })
           : "N/A"}
       </p>
-        <button onClick={() => setEditingBook(book)}>
+        <button onClick={() => navigate(`/edit/${book.id}`)}>
           Edit
         </button>
         <button onClick={handleDelete}>

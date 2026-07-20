@@ -13,6 +13,7 @@ function BookForm( { onSubmit, book }) {
 
   useEffect(() => {
   if (book) {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTitle(book.title);
     setAuthor(book.author);
     setStatus(book.status);

@@ -1,6 +1,12 @@
 import BookForm from "../components/BookForm";
+import { useNavigate, useParams } from "react-router-dom";
 
-function EditBook({ editingBook, books, setBooks, setEditingBook }) {
+function EditBook({ books, setBooks }) {
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const editingBook = books.find(
+    (book) => book.id === Number(id)
+  );
 
   if (!editingBook) {
     return null;
@@ -19,7 +25,7 @@ function EditBook({ editingBook, books, setBooks, setEditingBook }) {
     });
 
     setBooks(updatedBooks);
-    setEditingBook(null);
+    navigate("/books");
   }
 
   return (

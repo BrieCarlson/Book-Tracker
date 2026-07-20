@@ -1,16 +1,21 @@
 import BookForm from "../components/BookForm";
+import { useNavigate } from "react-router-dom";
 
 function AddBook({ setBooks }) {
+  const navigate = useNavigate();
+
   function handleAddBook(book) {
     const newBook = {
       id: Date.now(),
-        ...book,
+      ...book,
     };
 
     setBooks((currentBooks) => [
       ...currentBooks,
-      newBook
+      newBook,
     ]);
+
+    navigate("/books");
   }
 
   return (
