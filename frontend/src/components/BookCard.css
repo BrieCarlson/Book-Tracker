@@ -1,0 +1,173 @@
+/* Overall book card container */
+.book-card { 
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 24px; 
+    margin: 20px auto; 
+    max-width: 700px; 
+    text-align: left; 
+    box-shadow: 0 4px 8px var(--shadow);
+}
+
+/* Active book header layout block */
+.book-header {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+}
+
+/* Book header text container wrapper */
+.book-header-info {
+    display: flex; 
+    flex-direction: column; 
+}
+
+/* Book title text */
+.book-header-info h2 {
+    margin: 0;
+    font-size: 28px;
+    color: var(--heading);
+}
+
+/* Book author text */
+.book-header-info p { 
+    margin-top: 5px; 
+}
+
+/* Book status details section */
+.book-status { 
+    font-size: 16px; 
+    padding-bottom: 15px; 
+    border-bottom: 1px solid var(--border);
+}
+
+/* Rating star display characters */
+.rating-stars { 
+    font-size: 22px; 
+    letter-spacing: 2px; 
+}
+
+/* Book summary and notes content blocks */
+.book-summary, .book-notes {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 15px;
+}
+
+/* Book summary and notes subtitles */
+.book-summary h3, .book-notes h3 { 
+    margin-bottom: 5px; 
+}
+
+/* Book card actions button container */
+.book-actions { 
+    margin-top: 20px; 
+    display: flex; 
+    gap: 10px; 
+}
+
+/* Interactive buttons across the entire card */
+.book-actions button, .book-summary button, .book-notes button { 
+    cursor: pointer; 
+}
+
+/* Book summary and notes body paragraphs */
+.book-summary p, .book-notes p { 
+    white-space: pre-line; 
+}
+
+/* Book cover image artwork */
+.book-cover {
+    width: 120px;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 3px;
+    flex-shrink: 0;
+    box-shadow: 3px 3px 8px var(--shadow);
+}
+
+/* Book progress text */
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: bold;
+}
+.status-badge.finished {
+    background: #d8edda;
+    color: #27632a;
+}
+.status-badge.reading {
+    background: #dbeafe;
+    color: #1e40af;
+}
+.status-badge.want-to-read {
+    background: #fef3c7;
+    color: #92400e;
+}
+.status-badge.did-not-finish {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Dark mode status badge adjustments */
+@media (prefers-color-scheme: dark) {
+    .status-badge.finished {
+        background: #234b27;
+        color: #b7f5bc;
+    }
+    .status-badge.reading {
+        background: #1e3a5f;
+        color: #bfdbfe;
+    }
+    .status-badge.want-to-read {
+        background: #5c4312;
+        color: #fde68a;
+    }
+    .status-badge.did-not-finish {
+        background: #5f1f1f;
+        color: #fecaca;
+    }
+}
+
+/* Mobile book card layout */
+@media (max-width: 600px) {
+    .book-header {
+        flex-direction: column;
+        gap: 20px;
+    }
+    .book-cover {
+        width: 100px;
+        height: 150px;
+    }
+}
+
+/* Book card actions button container */
+.book-actions { 
+    margin-top: 20px; 
+    display: flex; 
+    justify-content: flex-end;
+    gap: 10px; 
+}
+
+/* Interactive buttons across the entire card */
+.book-actions button, .book-summary button, .book-notes button { 
+    cursor: pointer;
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+/* Button hover effect */
+.book-actions button:hover, .book-summary button:hover, .book-notes button:hover {
+    background: var(--accent);
+    color: var(--button-text);
+}

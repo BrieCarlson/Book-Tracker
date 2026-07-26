@@ -5,8 +5,9 @@ import Home from "./pages/Home";
 import Books from "./pages/Books";
 import AddBook from "./pages/AddBook";
 import EditBook from "./pages/EditBook";
-import Navbar from "./components/Navbar";
 import initialBooks from "./data/books";
+import Layout from "./components/Layout";
+import Stats from "./pages/Stats";
 
 function App() {
   // Do I already have saved books? If yes, load them, otherwise load sample data
@@ -30,47 +31,41 @@ function App() {
 
   return (
     <BrowserRouter>
-
-      <Navbar />
-
       <Routes>
-
-        <Route
-          path="/"
-          element={<Home />}
-        />
-
-        <Route
-          path="/books"
-          element={
-            <Books
-              books={books}
-              setBooks={setBooks}
-            />
-          }
-        />
-
-        <Route
-          path="/add"
-          element={
-            <AddBook
-              setBooks={setBooks}
-            />
-          }
-        />
-
-        <Route
-          path="/edit/:id"
-          element={
-            <EditBook
-              books={books}
-              setBooks={setBooks}
-            />
-          }
-        />
-
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Home books={books} />} />
+          <Route
+            path="books"
+            element={
+              <Books
+                books={books}
+                setBooks={setBooks}
+              />
+            }
+          />
+          <Route
+            path="add"
+            element={
+              <AddBook
+                setBooks={setBooks}
+              />
+            }
+          />
+          <Route
+            path="edit/:id"
+            element={
+              <EditBook
+                books={books}
+                setBooks={setBooks}
+              />
+            }
+          />
+          <Route
+            path="stats"
+            element={<Stats books={books} />}
+          />
+        </Route>
       </Routes>
-
     </BrowserRouter>
   );
 }
