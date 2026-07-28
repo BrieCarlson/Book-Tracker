@@ -1,77 +1,115 @@
+import "./Home.css";
+
 function Home({ books }) {
+  // Library
   const totalBooks = books.length;
-  const wantToRead = books.filter(
-    (book) => book.status === "Want To Read"
-  ).length;
-  const currentlyReading = books.filter(
-    (book) => book.status === "Reading" 
-  ).length;
-  const finished = books.filter(
-    (book) => book.status === "Finished" 
-  ).length;
-  const didNotFinish = books.filter(
-    (book) => book.status === "Did Not Finish" 
-  ).length;
-  const ratedBooks = books.filter(
-    (book) => book.rating > 0
-  );
 
-  // Calculates the average rating or returns "N/A" if empty.
-  const averageRating = 
-  ratedBooks.length > 0
-  ? (
-      ratedBooks.reduce(
-        (total, book) => total + book.rating,
-        0
-      ) / ratedBooks.length
-    ).toFixed(1)
-    : "N/A";
+  // Current book being read (most recently added)
+  const currentlyReading = books
+    .filter((book) => book.status === "Reading")
+    .sort(
+      (a, b) =>
+        new Date(b.dateAdded || 0) -
+        new Date(a.dateAdded || 0)
+    )[0];
 
-  // Iterates through the books array to find and return the single book object with the highest rating.
-  const highestRated = books.reduce((highest, current) => {
-    if(!highest || current.rating > highest.rating) {
-      return current;
-    }
-    return highest;
-  }, null);
+  // Three oldest books waiting to be read
+  const readNext = books
+    .filter((book) => book.status === "Want To Read")
+    .sort(
+      (a, b) =>
+        new Date(a.dateAdded || 0) -
+        new Date(b.dateAdded || 0)
+    )
+    .slice(0, 3);
 
-  // Finds the single book that was completed most recently by filtering out unfinished items and sorting the rest by date.
-  const mostRecentlyFinished = books
+  // Three most recently finished books
+  const recentlyFinished = books
     .filter((book) => book.dateFinished)
     .sort(
       (a, b) =>
         new Date(b.dateFinished) -
         new Date(a.dateFinished)
-    )[0];
+    )
+    .slice(0, 3);
 
   return (
-    <div>
-      <h1>Reading Dashboard</h1>
+    <div className="home-page">
+      <div className="home-header">
+        <h1>Welcome Back!</h1>
+        <p>{totalBooks} books in your library.</p>
+      </div>
 
-      <h2>Library</h2>
-      <p>Total Books: {totalBooks}</p>
+      <section className="dashboard-section">
+        <h2>Currently Reading</h2>
 
-      <h2>Reading Status</h2>
-      <p>Want To Read: {wantToRead}</p>
-      <p>Currently Reading: {currentlyReading}</p>
-      <p>Finished: {finished}</p>
-      <p>Did Not Finish: {didNotFinish}</p>
+        {currentlyReading ? (
+          <div className="dashboard-book">
+            {currentlyReading.coverImage && (
+              <img
+                src={currentlyReading.coverImage}
+                alt={currentlyReading.title}
+                className="dashboard-cover"
+              />
+            )}
 
-      <h2>Ratings</h2>
-      <p>Average Rating: {averageRating}</p>
-      <p>
-        Highest Rated:{" "}
-        {highestRated
-          ? `${highestRated.title} (${highestRated.rating}/5)`
-          : "N/A"}
-      </p>
+            <h3>{currentlyReading.title}</h3>
+            <p>{currentlyReading.author}</p>
+          </div>
+        ) : (
+          <p>No books are currently being read.</p>
+        )}
+      </section>
 
-      <h2>Recently Finished</h2>
-      <p>
-        {mostRecentlyFinished
-          ? mostRecentlyFinished.title
-          : "No books finished yet"}
-      </p>
+      <section className="dashboard-section">
+        <h2>Read Next</h2>
+
+        <div className="dashboard-book-grid">
+          {readNext.length > 0 ? (
+            readNext.map((book) => (
+              <div key={book.id} className="dashboard-book">
+                {book.coverImage && (
+                  <img
+                    src={book.coverImage}
+                    alt={book.title}
+                    className="dashboard-cover"
+                  />
+                )}
+
+                <h3>{book.title}</h3>
+                <p>{book.author}</p>
+              </div>
+            ))
+          ) : (
+            <p>Your reading list is empty.</p>
+          )}
+        </div>
+      </section>
+
+      <section className="dashboard-section">
+        <h2>Recently Finished</h2>
+
+        <div className="dashboard-book-grid">
+          {recentlyFinished.length > 0 ? (
+            recentlyFinished.map((book) => (
+              <div key={book.id} className="dashboard-book">
+                {book.coverImage && (
+                  <img
+                    src={book.coverImage}
+                    alt={book.title}
+                    className="dashboard-cover"
+                  />
+                )}
+
+                <h3>{book.title}</h3>
+                <p>{book.author}</p>
+              </div>
+            ))
+          ) : (
+            <p>No books have been finished yet.</p>
+          )}
+        </div>
+      </section>
     </div>
   );
 }

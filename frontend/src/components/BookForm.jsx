@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import "./BookForm.css";
 
-function BookForm({ onSubmit, book }) {
+function BookForm({ onSubmit, book, setHasChanges }) {
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [status, setStatus] = useState("Want To Read");
@@ -27,6 +27,16 @@ function BookForm({ onSubmit, book }) {
     }
   }, [book]);
 
+  function handleChange(setter) {
+    return (event) => {
+      setter(event.target.value);
+
+      if (setHasChanges) {
+        setHasChanges(true);
+      }
+    };
+  }
+
   function handleSubmit(event) {
     event.preventDefault();
 
@@ -42,6 +52,10 @@ function BookForm({ onSubmit, book }) {
       coverImage,
     };
 
+    if (setHasChanges) {
+      setHasChanges(false);
+    }
+
     onSubmit(bookData);
   }
 
@@ -55,19 +69,19 @@ function BookForm({ onSubmit, book }) {
         <input
           placeholder="Title"
           value={title}
-          onChange={(event) => setTitle(event.target.value)}
+          onChange={handleChange(setTitle)}
         />
 
         <input
           placeholder="Author"
           value={author}
-          onChange={(event) => setAuthor(event.target.value)}
+          onChange={handleChange(setAuthor)}
         />
 
         <input
           placeholder="Cover Image URL"
           value={coverImage}
-          onChange={(event) => setCoverImage(event.target.value)}
+          onChange={handleChange(setCoverImage)}
         />
       </section>
 
@@ -76,7 +90,7 @@ function BookForm({ onSubmit, book }) {
 
         <select
           value={status}
-          onChange={(event) => setStatus(event.target.value)}
+          onChange={handleChange(setStatus)}
         >
           <option value="Want To Read">Want To Read</option>
           <option value="Reading">Reading</option>
@@ -86,7 +100,13 @@ function BookForm({ onSubmit, book }) {
 
         <select
           value={rating}
-          onChange={(event) => setRating(Number(event.target.value))}
+          onChange={(event) => {
+            setRating(Number(event.target.value));
+
+            if (setHasChanges) {
+              setHasChanges(true);
+            }
+          }}
         >
           <option value={0}>No Rating</option>
           <option value={1}>1 Star</option>
@@ -101,22 +121,28 @@ function BookForm({ onSubmit, book }) {
         <h2>Dates</h2>
 
         <div className="date-group">
-          <label htmlFor="dateStarted">Date Started:</label>
+          <label htmlFor="dateStarted">
+            Date Started:
+          </label>
+
           <input
             id="dateStarted"
             type="date"
             value={dateStarted}
-            onChange={(event) => setDateStarted(event.target.value)}
+            onChange={handleChange(setDateStarted)}
           />
         </div>
 
         <div className="date-group">
-          <label htmlFor="dateFinished">Date Finished:</label>
+          <label htmlFor="dateFinished">
+            Date Finished:
+          </label>
+
           <input
             id="dateFinished"
             type="date"
             value={dateFinished}
-            onChange={(event) => setDateFinished(event.target.value)}
+            onChange={handleChange(setDateFinished)}
           />
         </div>
       </section>
@@ -127,7 +153,7 @@ function BookForm({ onSubmit, book }) {
         <textarea
           placeholder="Enter book summary here..."
           value={summary}
-          onChange={(event) => setSummary(event.target.value)}
+          onChange={handleChange(setSummary)}
         />
       </section>
 
@@ -137,7 +163,7 @@ function BookForm({ onSubmit, book }) {
         <textarea
           placeholder="Add notes here..."
           value={notes}
-          onChange={(event) => setNotes(event.target.value)}
+          onChange={handleChange(setNotes)}
         />
       </section>
 

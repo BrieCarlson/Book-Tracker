@@ -1,0 +1,31 @@
+.dashboard-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 12px;
+  border-radius: 10px;
+}
+
+.dashboard-card-cover {
+  width: 60px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 5px;
+  flex-shrink: 0;
+}
+
+.dashboard-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dashboard-card-info h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.dashboard-card-info p {
+  margin: 0;
+  font-size: 0.85rem;
+}
