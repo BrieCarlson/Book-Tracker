@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { formatDate } from "../utils/formatDate";
 import "./BookCard.css";
 
 function BookCard({ book }) {
@@ -64,30 +65,12 @@ function BookCard({ book }) {
 
         <p>
           Date Started:{" "}
-          {book.dateStarted
-            ? new Date(`${book.dateStarted}T00:00:00`).toLocaleDateString(
-                "en-US",
-                {
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                }
-              )
-            : "N/A"}
+          {formatDate(book.dateStarted)}
         </p>
 
         <p>
           Date Finished:{" "}
-          {book.dateFinished
-            ? new Date(`${book.dateFinished}T00:00:00`).toLocaleDateString(
-                "en-US",
-                {
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                }
-              )
-            : "N/A"}
+          {formatDate(book.dateFinished)}
         </p>
       </div>
 
@@ -112,9 +95,7 @@ function BookCard({ book }) {
       </div>
 
       <div className="book-actions">
-        <button
-          onClick={() => navigate(`/books/${book.id}`)}
-        >
+        <button onClick={() => navigate(`/books/${book._id}`)}>
           View Details
         </button>
       </div>

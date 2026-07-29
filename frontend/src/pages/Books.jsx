@@ -8,7 +8,7 @@ function Books({ books }) {
       {books.length > 0 ? (
         books.map((book) => (
           <BookCard
-            key={book.id}
+            key={book._id}
             book={book}
           />
         ))

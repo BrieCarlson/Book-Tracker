@@ -1,6 +1,7 @@
+import { useState, useEffect } from "react";
 import BookForm from "../components/BookForm";
 import { useNavigate, useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { updateBook } from "../api/books";
 
 function EditBook({ books, setBooks }) {
   const navigate = useNavigate();
@@ -9,7 +10,7 @@ function EditBook({ books, setBooks }) {
   const [hasChanges, setHasChanges] = useState(false);
 
   const editingBook = books.find(
-    (book) => book.id === Number(id)
+    (book) => book._id === id
   );
 
   useEffect(() => {
@@ -51,21 +52,18 @@ function EditBook({ books, setBooks }) {
     return null;
   }
 
-  function handleEditBook(updatedBook) {
-    const updatedBooks = books.map((book) => {
-      if (book.id === editingBook.id) {
-        return {
-          ...book,
-          ...updatedBook,
-          lastUpdated: new Date().toISOString(),
-        };
-      }
+  async function handleEditBook(updatedBook) {
+    const savedBook = await updateBook(
+      editingBook._id,
+      updatedBook
+    );
 
-      return book;
-    });
+    setBooks((currentBooks) =>
+      currentBooks.map((book) =>
+        book._id === savedBook._id ? savedBook : book
+      )
+    );
 
-    setBooks(updatedBooks);
-    setHasChanges(false);
     navigate("/books");
   }
 
