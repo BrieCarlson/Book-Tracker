@@ -33,7 +33,10 @@ exports.getBook = async (requestAnimationFrame, res) => {
 // Create a book
 exports.createBook = async (req, res) => {
     try {
-        const book = await Book.create(req.body);
+        const book = await Book.create({
+            ...req.body,
+            userId: req.user.id,
+        });
         res.status(201).json(book);
     } catch (error) {
         res.status(400).json({
