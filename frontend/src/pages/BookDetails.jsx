@@ -85,6 +85,15 @@ function BookDetails({ books, setBooks }) {
         <p>
           Date Finished: {book.dateFinished || "N/A"}
         </p>
+        <p>
+          <strong>Date Added:</strong>{" "}
+          {new Date(book.dateAdded).toLocaleDateString()}
+        </p>
+
+        <p>
+          <strong>Last Updated:</strong>{" "}
+          {new Date(book.lastUpdated).toLocaleDateString()}
+        </p>
       </section>
 
       <section className="details-section">

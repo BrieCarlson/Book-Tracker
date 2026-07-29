@@ -5,8 +5,11 @@ function AddBook({ setBooks }) {
   const navigate = useNavigate();
 
   function handleAddBook(book) {
+    const now = new Date().toISOString();
     const newBook = {
       id: Date.now(),
+      dateAdded: now,
+      lastUpdated: now,
       ...book,
     };
 
