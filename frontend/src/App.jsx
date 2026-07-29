@@ -5,30 +5,20 @@ import Home from "./pages/Home";
 import Books from "./pages/Books";
 import AddBook from "./pages/AddBook";
 import EditBook from "./pages/EditBook";
-import initialBooks from "./data/books";
 import Layout from "./components/Layout";
 import Stats from "./pages/Stats";
 import BookDetails from "./pages/BookDetails";
+import { getBooks } from "./api/books";
 
 function App() {
-  // Do I already have saved books? If yes, load them, otherwise load sample data
-  const [books, setBooks] = useState(() => {
-    const savedBooks = localStorage.getItem("books");
-
-    if (savedBooks) {
-      return JSON.parse(savedBooks);
-    }
-
-    return initialBooks;
-  });
-
-  // Whenever books changes, save it.
+  const [books, setBooks] = useState([]);
   useEffect(() => {
-    localStorage.setItem(
-      "books",
-      JSON.stringify(books)
-    );
-  }, [books]);
+    async function loadBooks() {
+      const savedBooks = await getBooks();
+      setBooks(savedBooks);
+    }
+    loadBooks();
+  }, []);
 
   return (
     <BrowserRouter>

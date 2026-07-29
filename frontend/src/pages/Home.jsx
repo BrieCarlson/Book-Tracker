@@ -67,7 +67,7 @@ function Home({ books }) {
         <div className="dashboard-book-grid">
           {readNext.length > 0 ? (
             readNext.map((book) => (
-              <div key={book.id} className="dashboard-book">
+              <div key={book._id} className="dashboard-book">
                 {book.coverImage && (
                   <img
                     src={book.coverImage}
@@ -92,7 +92,7 @@ function Home({ books }) {
         <div className="dashboard-book-grid">
           {recentlyFinished.length > 0 ? (
             recentlyFinished.map((book) => (
-              <div key={book.id} className="dashboard-book">
+              <div key={book._id} className="dashboard-book">
                 {book.coverImage && (
                   <img
                     src={book.coverImage}

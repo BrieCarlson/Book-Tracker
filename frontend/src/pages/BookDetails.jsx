@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { deleteBook } from "../api/books";
+import { formatDate, formatDateTime } from "../utils/formatDate";
 import "./BookDetails.css";
 
 function BookDetails({ books, setBooks }) {
@@ -10,7 +12,7 @@ function BookDetails({ books, setBooks }) {
   const [notesExpanded, setNotesExpanded] = useState(false);
 
   const book = books.find(
-    (book) => book.id === Number(id)
+    (book) => book._id === id
   );
 
   if (!book) {
@@ -33,15 +35,17 @@ function BookDetails({ books, setBooks }) {
       ? notes
       : `${notes.substring(0, notesLimit)}...`;
 
-  function handleDelete() {
+  async function handleDelete() {
     const confirmed = window.confirm(
       `Are you sure you want to delete "${book.title}"?`
     );
 
     if (confirmed) {
+      await deleteBook(book._id);
+
       setBooks((currentBooks) =>
         currentBooks.filter(
-          (currentBook) => currentBook.id !== book.id
+          (currentBook) => currentBook._id !== book._id
         )
       );
 
@@ -80,19 +84,19 @@ function BookDetails({ books, setBooks }) {
           Rating: {book.rating}/5
         </p>
         <p>
-          Date Started: {book.dateStarted || "N/A"}
+          Date Started: {formatDate(book.dateStarted)}
         </p>
         <p>
-          Date Finished: {book.dateFinished || "N/A"}
+          Date Finished: {formatDate(book.dateFinished)}
         </p>
         <p>
           <strong>Date Added:</strong>{" "}
-          {new Date(book.dateAdded).toLocaleDateString()}
+          {formatDateTime(book.dateAdded)}
         </p>
 
         <p>
           <strong>Last Updated:</strong>{" "}
-          {new Date(book.lastUpdated).toLocaleDateString()}
+          {formatDateTime(book.updatedAt || book.createdAt)}
         </p>
       </section>
 
@@ -141,7 +145,7 @@ function BookDetails({ books, setBooks }) {
       <div className="details-actions">
         <button
           onClick={() =>
-            navigate(`/edit/${book.id}`)
+            navigate(`/edit/${book._id}`)
           }
         >
           Edit
