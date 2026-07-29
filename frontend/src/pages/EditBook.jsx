@@ -57,6 +57,7 @@ function EditBook({ books, setBooks }) {
         return {
           ...book,
           ...updatedBook,
+          lastUpdated: new Date().toISOString(),
         };
       }
 
