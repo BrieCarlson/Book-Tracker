@@ -1,26 +1,28 @@
 import StatCard from "../components/StatCard";
 import "./Stats.css";
 
-function Stats({ books }) {
-  const totalBooks = books.length;
+function Stats({ books = [] }) {
+  const safeBooks = Array.isArray(books) ? books : [];
 
-  const finishedBooks = books.filter(
+  const totalBooks = safeBooks.length;
+
+  const finishedBooks = safeBooks.filter(
     (book) => book.status === "Finished"
   ).length;
 
-  const readingBooks = books.filter(
+  const readingBooks = safeBooks.filter(
     (book) => book.status === "Reading"
   ).length;
 
-  const wantToReadBooks = books.filter(
+  const wantToReadBooks = safeBooks.filter(
     (book) => book.status === "Want To Read"
   ).length;
 
-  const didNotFinishBooks = books.filter(
+  const didNotFinishBooks = safeBooks.filter(
     (book) => book.status === "Did Not Finish"
   ).length;
 
-  const ratedBooks = books.filter(
+  const ratedBooks = safeBooks.filter(
     (book) => book.rating > 0
   );
 
@@ -35,35 +37,40 @@ function Stats({ books }) {
       : "N/A";
 
   return (
-    <div className="stats-page">
+    <div className="container">
       <h1>Reading Statistics</h1>
 
       <div className="stats-grid">
         <StatCard
-            title="Total Books"
-            value={totalBooks}
+          title="Total Books"
+          value={totalBooks}
         />
+
         <StatCard
-            title="Finished"
-            value={finishedBooks}
+          title="Finished"
+          value={finishedBooks}
         />
+
         <StatCard
-            title="Reading"
-            value={readingBooks}
+          title="Reading"
+          value={readingBooks}
         />
+
         <StatCard
-            title="Want To Read"
-            value={wantToReadBooks}
+          title="Want To Read"
+          value={wantToReadBooks}
         />
+
         <StatCard
-            title="Did Not Finish"
-            value={didNotFinishBooks}
+          title="Did Not Finish"
+          value={didNotFinishBooks}
         />
+
         <StatCard
-            title="Average Rating"
-            value={`${averageRating} / 5`}
+          title="Average Rating"
+          value={`${averageRating} / 5`}
         />
-        </div>
+      </div>
     </div>
   );
 }

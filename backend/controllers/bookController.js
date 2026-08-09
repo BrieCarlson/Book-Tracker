@@ -1,9 +1,11 @@
 const Book = require("../models/Book");
 
-// Get all books
-exports.getBooks = async (requestAnimationFrame, res) => {
+// Get all books for logged-in user
+exports.getBooks = async (req, res) => {
     try {
-        const books = await Book.find();
+        const books = await Book.find({
+            userId: req.user.id,
+        });
 
         res.json(books);
     } catch (error) {
@@ -13,15 +15,20 @@ exports.getBooks = async (requestAnimationFrame, res) => {
     }
 };
 
-// Get one book
-exports.getBook = async (requestAnimationFrame, res) => {
+// Get one book for logged-in user
+exports.getBook = async (req, res) => {
     try {
-        const book = await Book.findById(requestAnimationFrame.params.id);
+        const book = await Book.findOne({
+            _id: req.params.id,
+            userId: req.user.id,
+        });
+
         if (!book) {
             return res.status(404).json({
                 message: "Book not found",
             });
         }
+
         res.json(book);
     } catch (error) {
         res.status(500).json({
@@ -37,6 +44,7 @@ exports.createBook = async (req, res) => {
             ...req.body,
             userId: req.user.id,
         });
+
         res.status(201).json(book);
     } catch (error) {
         res.status(400).json({
@@ -48,18 +56,23 @@ exports.createBook = async (req, res) => {
 // Update a book
 exports.updateBook = async (req, res) => {
     try {
-        const book = await Book.findByIdAndUpdate(
-            req.params.id,
+        const book = await Book.findOneAndUpdate(
+            {
+                _id: req.params.id,
+                userId: req.user.id,
+            },
             req.body,
             {
                 new: true,
             }
         );
+
         if (!book) {
             return res.status(404).json({
                 message: "Book not found",
             });
         }
+
         res.json(book);
     } catch (error) {
         res.status(400).json({
@@ -71,9 +84,11 @@ exports.updateBook = async (req, res) => {
 // Delete a book
 exports.deleteBook = async (req, res) => {
     try {
-        const book = await Book.findByIdAndDelete(
-            req.params.id
-        );
+        const book = await Book.findOneAndDelete({
+            _id: req.params.id,
+            userId: req.user.id,
+        });
+
         if (!book) {
             return res.status(404).json({
                 message: "Book not found",

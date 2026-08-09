@@ -8,6 +8,12 @@ import EditBook from "./pages/EditBook";
 import Layout from "./components/Layout";
 import Stats from "./pages/Stats";
 import BookDetails from "./pages/BookDetails";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Landing from "./pages/Landing";
+import ProtectedRoute from "./components/ProtectedRoute";
+import HomeRoute from "./components/HomeRoute";
+
 import { getBooks } from "./api/books";
 
 function App() {
@@ -24,45 +30,65 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Layout />}>
-          <Route index element={<Home books={books} />} />
+          <Route index element={<HomeRoute books={books} />} />
           <Route
             path="books"
             element={
-              <Books
-                books={books}
-                setBooks={setBooks}
-              />
+              <ProtectedRoute>
+                <Books
+                  books={books}
+                  setBooks={setBooks}
+                />
+              </ProtectedRoute>
             }
           />
           <Route
             path="add"
             element={
-              <AddBook
-                setBooks={setBooks}
-              />
+              <ProtectedRoute>
+                <AddBook
+                  setBooks={setBooks}
+                />
+              </ProtectedRoute>
             }
           />
           <Route
             path="edit/:id"
             element={
-              <EditBook
-                books={books}
-                setBooks={setBooks}
-              />
+              <ProtectedRoute>
+                <EditBook
+                  books={books}
+                  setBooks={setBooks}
+                />
+              </ProtectedRoute>
             }
           />
           <Route
             path="books/:id"
             element={
-              <BookDetails
-                books={books}
-                setBooks={setBooks}
-              />
+              <ProtectedRoute>
+                <BookDetails
+                  books={books}
+                  setBooks={setBooks}
+                />
+              </ProtectedRoute>
             }
           />
           <Route
             path="stats"
-            element={<Stats books={books} />}
+            element={
+              <ProtectedRoute>
+                <Stats books={books} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="login"
+            element={<Login />}
+          />
+          <Route
+            path="register"
+            element={<Register />}
           />
         </Route>
       </Routes>
