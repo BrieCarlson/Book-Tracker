@@ -1,11 +1,14 @@
 import "./Home.css";
 
-function Home({ books }) {
-  // Library
-  const totalBooks = books.length;
+function Home({ books = [] }) {
+  // Make sure the dashboard always works with an array.
+  const safeBooks = Array.isArray(books) ? books : [];
 
-  // Current book being read (most recently added)
-  const currentlyReading = books
+  // Library
+  const totalBooks = safeBooks.length;
+
+  // Current book being read, most recently added
+  const currentlyReading = safeBooks
     .filter((book) => book.status === "Reading")
     .sort(
       (a, b) =>
@@ -14,7 +17,7 @@ function Home({ books }) {
     )[0];
 
   // Three oldest books waiting to be read
-  const readNext = books
+  const readNext = safeBooks
     .filter((book) => book.status === "Want To Read")
     .sort(
       (a, b) =>
@@ -24,7 +27,7 @@ function Home({ books }) {
     .slice(0, 3);
 
   // Three most recently finished books
-  const recentlyFinished = books
+  const recentlyFinished = safeBooks
     .filter((book) => book.dateFinished)
     .sort(
       (a, b) =>
@@ -34,11 +37,10 @@ function Home({ books }) {
     .slice(0, 3);
 
   return (
-    <div className="home-page">
-      <div className="home-header">
-        <h1>Welcome Back!</h1>
-        <p>{totalBooks} books in your library.</p>
-      </div>
+    <div className="container">
+      <h1>Welcome Back!</h1>
+
+      <p>{totalBooks} books in your library.</p>
 
       <section className="dashboard-section">
         <h2>Currently Reading</h2>
@@ -67,7 +69,10 @@ function Home({ books }) {
         <div className="dashboard-book-grid">
           {readNext.length > 0 ? (
             readNext.map((book) => (
-              <div key={book._id} className="dashboard-book">
+              <div
+                key={book._id}
+                className="dashboard-book"
+              >
                 {book.coverImage && (
                   <img
                     src={book.coverImage}
@@ -92,7 +97,10 @@ function Home({ books }) {
         <div className="dashboard-book-grid">
           {recentlyFinished.length > 0 ? (
             recentlyFinished.map((book) => (
-              <div key={book._id} className="dashboard-book">
+              <div
+                key={book._id}
+                className="dashboard-book"
+              >
                 {book.coverImage && (
                   <img
                     src={book.coverImage}
