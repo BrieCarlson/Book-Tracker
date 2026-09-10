@@ -1,103 +1,48 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { formatDate } from "../utils/formatDate";
 import "./BookCard.css";
 
 function BookCard({ book }) {
   const navigate = useNavigate();
 
-  const [summaryExpanded, setSummaryExpanded] = useState(false);
-
-  const summaryLimit = 150;
-  const summary = book?.summary || "";
-  const hasSummary = Boolean(summary);
-  const isLongSummary = hasSummary && summary.length > summaryLimit;
-
-  const displayedText =
-    summaryExpanded || !isLongSummary
-      ? summary
-      : `${summary.substring(0, summaryLimit)}...`;
-
-  function renderStars(rating = 0) {
-    return (
-      <>
-        {"★".repeat(rating)}
-        {"☆".repeat(5 - rating)}
-      </>
-    );
+  function handleClick() {
+    navigate(`/books/${book._id}`);
   }
 
+  const statusClass = book.status
+    .toLowerCase()
+    .replaceAll(" ", "-");
+
   return (
-    <div className="book-card">
-      <div className="book-header">
-        {book.coverImage && (
-          <img
-            src={book.coverImage}
-            alt={`${book.title} cover`}
-            className="book-cover"
-          />
-        )}
-
-        <div className="book-header-info">
-          <h2>{book.title}</h2>
-          <p>{book.author}</p>
+    <div
+      className="book-card"
+      onClick={handleClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          handleClick();
+        }
+      }}
+    >
+      {book.coverImage ? (
+        <img
+          src={book.coverImage}
+          alt={`${book.title} cover`}
+          className="book-cover"
+        />
+      ) : (
+        <div className="book-cover-placeholder">
+          No Cover
         </div>
-      </div>
+      )}
 
-      <div className="book-status">
-        <p>
-          Status:{" "}
-          <span
-            className={`status-badge ${book.status
-              .toLowerCase()
-              .replaceAll(" ", "-")}`}
-          >
-            {book.status}
-          </span>
-        </p>
+      <div className="book-card-info">
+        <h2>{book.title}</h2>
+        <p>{book.author}</p>
 
-        <p>
-          Rating:{" "}
-          <span className="rating-stars">
-            {renderStars(book.rating)}
-          </span>
-        </p>
-
-        <p>
-          Date Started:{" "}
-          {formatDate(book.dateStarted)}
-        </p>
-
-        <p>
-          Date Finished:{" "}
-          {formatDate(book.dateFinished)}
-        </p>
-      </div>
-
-      <div className="book-summary">
-        <h3>Summary</h3>
-
-        <p>
-          {hasSummary
-            ? displayedText
-            : "No summary added."}
-        </p>
-
-        {isLongSummary && (
-          <button
-            onClick={() =>
-              setSummaryExpanded(!summaryExpanded)
-            }
-          >
-            {summaryExpanded ? "Show Less" : "Show More"}
-          </button>
-        )}
-      </div>
-
-      <div className="book-actions">
-        <button onClick={() => navigate(`/books/${book._id}`)}>
-          View Details
-        </button>
+        <span className={`status-badge ${statusClass}`}>
+          {book.status}
+        </span>
       </div>
     </div>
   );

@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { login } from "../api/auth";
 import { useAuth } from "../hooks/useAuth";
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login: loginUser } = useAuth();
 
   const [formData, setFormData] = useState({
@@ -44,6 +45,9 @@ function Login() {
   return (
     <div className="auth-page">
       <h1>Log In</h1>
+      {location.state?.message && (
+        <p>{location.state.message}</p>
+      )}
 
       {error && <p>{error}</p>}
 

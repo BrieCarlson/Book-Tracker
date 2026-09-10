@@ -15,14 +15,14 @@ function BookForm({ onSubmit, book, setHasChanges }) {
   useEffect(() => {
     if (book) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setTitle(book.title);
-      setAuthor(book.author);
-      setStatus(book.status);
-      setRating(book.rating);
-      setSummary(book.summary);
-      setNotes(book.notes);
-      setDateStarted(book.dateStarted);
-      setDateFinished(book.dateFinished);
+      setTitle(book.title || "");
+      setAuthor(book.author || "");
+      setStatus(book.status || "Want To Read");
+      setRating(book.rating || 0);
+      setSummary(book.summary || "");
+      setNotes(book.notes || "");
+      setDateStarted(book.dateStarted || "");
+      setDateFinished(book.dateFinished || "");
       setCoverImage(book.coverImage || "");
     }
   }, [book]);
@@ -37,12 +37,36 @@ function BookForm({ onSubmit, book, setHasChanges }) {
     };
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
+    const cleanTitle = title.trim();
+    const cleanAuthor = author.trim();
+    const missingFields = [];
+
+    if (!cleanTitle) {
+      missingFields.push("title");
+    }
+
+    if (!cleanAuthor) {
+      missingFields.push("author");
+    }
+
+    if (missingFields.length > 0) {
+      const shouldSaveAsUnknown = window.confirm(
+        `This book is missing its ${missingFields.join(
+          " and "
+        )}. Save it as Unknown instead?`
+      );
+
+      if (!shouldSaveAsUnknown) {
+        return;
+      }
+    }
+
     const bookData = {
-      title,
-      author,
+      title: cleanTitle || "Unknown Title",
+      author: cleanAuthor || "Unknown Author",
       status,
       rating,
       summary,
@@ -52,11 +76,17 @@ function BookForm({ onSubmit, book, setHasChanges }) {
       coverImage,
     };
 
-    if (setHasChanges) {
-      setHasChanges(false);
-    }
+    try {
+      await onSubmit(bookData);
 
-    onSubmit(bookData);
+      if (setHasChanges) {
+        setHasChanges(false);
+      }
+    } catch {
+      if (setHasChanges) {
+        setHasChanges(true);
+      }
+    }
   }
 
   return (
@@ -95,7 +125,9 @@ function BookForm({ onSubmit, book, setHasChanges }) {
           <option value="Want To Read">Want To Read</option>
           <option value="Reading">Reading</option>
           <option value="Finished">Finished</option>
-          <option value="Did Not Finish">Did Not Finish</option>
+          <option value="Did Not Finish">
+            Did Not Finish
+          </option>
         </select>
 
         <select

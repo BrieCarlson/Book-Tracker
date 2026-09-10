@@ -21,8 +21,11 @@ function BookDetails({ books, setBooks }) {
 
   const summaryLimit = 200;
   const notesLimit = 200;
-  const summary = book.summary || "";
-  const notes = book.notes || "";
+  const summary = book.summary?.trim() || "";
+  const notes = book.notes?.trim() || "";
+  const hasRating = Number(book.rating) > 0;
+  const hasDateStarted = Boolean(book.dateStarted);
+  const hasDateFinished = Boolean(book.dateFinished);
   const summaryIsLong = summary.length > summaryLimit;
   const notesIsLong = notes.length > notesLimit;
   const displayedSummary =
@@ -80,15 +83,24 @@ function BookDetails({ books, setBooks }) {
         <p>
           Status: {book.status}
         </p>
-        <p>
-          Rating: {book.rating}/5
-        </p>
-        <p>
-          Date Started: {formatDate(book.dateStarted)}
-        </p>
-        <p>
-          Date Finished: {formatDate(book.dateFinished)}
-        </p>
+        {hasRating && (
+          <p>
+            Rating: {book.rating}/5
+          </p>
+        )}
+
+        {hasDateStarted && (
+          <p>
+            Date Started: {formatDate(book.dateStarted)}
+          </p>
+        )}
+
+        {hasDateFinished && (
+          <p>
+            Date Finished: {formatDate(book.dateFinished)}
+          </p>
+        )}
+
         <p>
           <strong>Date Added:</strong>{" "}
           {formatDateTime(book.dateAdded)}
@@ -100,47 +112,49 @@ function BookDetails({ books, setBooks }) {
         </p>
       </section>
 
-      <section className="details-section">
-        <h3>Summary</h3>
-        <p className="details-text">
-          {summary
-              ? displayedSummary
-              : "No summary added."}
-        </p>
+      {summary && (
+        <section className="details-section">
+          <h3>Summary</h3>
 
-        {summaryIsLong && (
-          <button
-            onClick={() =>
-              setSummaryExpanded(!summaryExpanded)
-            }
-          >
-            {summaryExpanded
-              ? "Show Less"
-              : "Show More"}
-          </button>
-        )}
-      </section>
+          <p className="details-text">
+            {displayedSummary}
+          </p>
 
-      <section className="details-section">
-        <h3>Notes</h3>
-        <p className="details-text">
-          {notes
-            ? displayedNotes
-            : "No notes added."}
-        </p>
+          {summaryIsLong && (
+            <button
+              onClick={() =>
+                setSummaryExpanded(!summaryExpanded)
+              }
+            >
+              {summaryExpanded
+                ? "Show Less"
+                : "Show More"}
+            </button>
+          )}
+        </section>
+      )}
 
-        {notesIsLong && (
-          <button
-            onClick={() =>
-              setNotesExpanded(!notesExpanded)
-            }
-          >
-            {notesExpanded
-              ? "Show Less"
-              : "Show More"}
-          </button>
-        )}
-      </section>
+      {notes && (
+        <section className="details-section">
+          <h3>Notes</h3>
+
+          <p className="details-text">
+            {displayedNotes}
+          </p>
+
+          {notesIsLong && (
+            <button
+              onClick={() =>
+                setNotesExpanded(!notesExpanded)
+              }
+            >
+              {notesExpanded
+                ? "Show Less"
+                : "Show More"}
+            </button>
+          )}
+        </section>
+      )}
 
       <div className="details-actions">
         <button

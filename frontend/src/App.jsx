@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import ConfirmEmailChange from "./pages/ConfirmEmailChange";
 
-import Home from "./pages/Home";
 import Books from "./pages/Books";
 import AddBook from "./pages/AddBook";
 import EditBook from "./pages/EditBook";
@@ -10,21 +10,32 @@ import Stats from "./pages/Stats";
 import BookDetails from "./pages/BookDetails";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Landing from "./pages/Landing";
 import ProtectedRoute from "./components/ProtectedRoute";
 import HomeRoute from "./components/HomeRoute";
+import Profile from "./pages/Profile";
+import { useAuth } from "./hooks/useAuth";
 
 import { getBooks } from "./api/books";
 
 function App() {
+  const { user } = useAuth();
   const [books, setBooks] = useState([]);
   useEffect(() => {
     async function loadBooks() {
+      if (!user) {
+        setBooks([]);
+        return;
+      }
       const savedBooks = await getBooks();
-      setBooks(savedBooks);
+
+      if (Array.isArray(savedBooks)) {
+        setBooks(savedBooks);
+      } else {
+        setBooks([]);
+      }
     }
     loadBooks();
-  }, []);
+  }, [user]);
 
   return (
     <BrowserRouter>
@@ -89,6 +100,18 @@ function App() {
           <Route
             path="register"
             element={<Register />}
+          />
+          <Route
+            path="confirm-email-change"
+            element={<ConfirmEmailChange />}
+          />
+          <Route
+            path="profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
           />
         </Route>
       </Routes>

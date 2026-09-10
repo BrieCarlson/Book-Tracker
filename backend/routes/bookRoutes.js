@@ -4,11 +4,11 @@ const router = express.Router();
 const protect = require("../middleware/authMiddleware");
 
 const {
-    getBooks,
-    getBook,
-    createBook,
-    updateBook,
-    deleteBook,
+  getBooks,
+  getBook,
+  createBook,
+  updateBook,
+  deleteBook,
 } = require("../controllers/bookController");
 
 router.get("/", protect, getBooks);

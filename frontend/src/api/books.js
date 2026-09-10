@@ -12,16 +12,41 @@ function getAuthHeaders() {
     : {};
 }
 
-// Get all books
+async function parseResponse(response) {
+  const text = await response.text();
+
+  let data;
+
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    data = {};
+  }
+
+  if (!response.ok) {
+    if (response.status === 413) {
+      throw new Error(
+        "The book information is too large. Please shorten the summary, notes, or cover image URL."
+      );
+    }
+
+    throw new Error(
+      data.message ||
+        `Request failed with status ${response.status}.`
+    );
+  }
+
+  return data;
+}
+
 export async function getBooks() {
   const response = await fetch(API_URL, {
     headers: getAuthHeaders(),
   });
 
-  return response.json();
+  return parseResponse(response);
 }
 
-// Add a book
 export async function createBook(book) {
   const response = await fetch(API_URL, {
     method: "POST",
@@ -32,10 +57,9 @@ export async function createBook(book) {
     body: JSON.stringify(book),
   });
 
-  return response.json();
+  return parseResponse(response);
 }
 
-// Update a book
 export async function updateBook(id, book) {
   const response = await fetch(`${API_URL}/${id}`, {
     method: "PUT",
@@ -46,15 +70,14 @@ export async function updateBook(id, book) {
     body: JSON.stringify(book),
   });
 
-  return response.json();
+  return parseResponse(response);
 }
 
-// Delete a book
 export async function deleteBook(id) {
   const response = await fetch(`${API_URL}/${id}`, {
     method: "DELETE",
     headers: getAuthHeaders(),
   });
 
-  return response.json();
+  return parseResponse(response);
 }
