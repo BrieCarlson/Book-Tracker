@@ -8,6 +8,7 @@ function EditBook({ books, setBooks }) {
   const { id } = useParams();
 
   const [hasChanges, setHasChanges] = useState(false);
+  const [error, setError] = useState("");
 
   const editingBook = books.find(
     (book) => book._id === id
@@ -49,22 +50,31 @@ function EditBook({ books, setBooks }) {
   }
 
   if (!editingBook) {
-    return null;
+    return <p>Book not found.</p>;
   }
 
   async function handleEditBook(updatedBook) {
-    const savedBook = await updateBook(
-      editingBook._id,
-      updatedBook
-    );
+    setError("");
 
-    setBooks((currentBooks) =>
-      currentBooks.map((book) =>
-        book._id === savedBook._id ? savedBook : book
-      )
-    );
+    try {
+      const savedBook = await updateBook(
+        editingBook._id,
+        updatedBook
+      );
 
-    navigate("/books");
+      setBooks((currentBooks) =>
+        currentBooks.map((book) =>
+          book._id === savedBook._id
+            ? savedBook
+            : book
+        )
+      );
+
+      navigate("/books");
+    } catch (requestError) {
+      setError(requestError.message);
+      throw requestError;
+    }
   }
 
   return (
@@ -74,6 +84,8 @@ function EditBook({ books, setBooks }) {
       </button>
 
       <h1>Edit Book</h1>
+
+      {error && <p>{error}</p>}
 
       <BookForm
         book={editingBook}
