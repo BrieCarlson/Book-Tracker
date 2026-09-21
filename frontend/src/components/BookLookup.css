@@ -1,0 +1,120 @@
+.book-lookup {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.book-lookup-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--heading);
+  font-weight: 600;
+}
+
+.book-lookup > input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--background);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 15px;
+}
+
+.book-lookup > input:focus {
+  outline: 2px solid var(--accent);
+  border-color: var(--accent);
+}
+
+.book-lookup-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  max-height: 360px;
+  overflow-y: auto;
+  margin-top: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px var(--shadow);
+}
+
+.book-form .book-lookup-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 10px;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.book-form .book-lookup-option:last-child {
+  border-bottom: none;
+}
+
+.book-form .book-lookup-option:hover,
+.book-form .book-lookup-option:focus {
+  background: var(--background);
+}
+
+.book-lookup-cover,
+.book-lookup-cover-placeholder {
+  flex: 0 0 42px;
+  width: 42px;
+  height: 62px;
+  object-fit: cover;
+  border-radius: 3px;
+}
+
+.book-lookup-cover-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--border);
+  color: var(--text);
+  font-size: 9px;
+  text-align: center;
+}
+
+.book-lookup-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.book-lookup-details strong,
+.book-lookup-details span,
+.book-lookup-details small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.book-lookup-details strong {
+  color: var(--heading);
+}
+
+.book-lookup-details small {
+  opacity: 0.75;
+}
+
+.book-lookup-message {
+  margin: 0;
+  padding: 14px;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.book-lookup-error {
+  color: #b42318;
+}

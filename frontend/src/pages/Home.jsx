@@ -7,14 +7,14 @@ function Home({ books = [] }) {
   // Library
   const totalBooks = safeBooks.length;
 
-  // Current book being read, most recently added
+  // All books currently being read, most recently added first
   const currentlyReading = safeBooks
     .filter((book) => book.status === "Reading")
     .sort(
       (a, b) =>
         new Date(b.dateAdded || 0) -
         new Date(a.dateAdded || 0)
-    )[0];
+    );
 
   // Three oldest books waiting to be read
   const readNext = safeBooks
@@ -45,18 +45,25 @@ function Home({ books = [] }) {
       <section className="dashboard-section">
         <h2>Currently Reading</h2>
 
-        {currentlyReading ? (
-          <div className="dashboard-book">
-            {currentlyReading.coverImage && (
-              <img
-                src={currentlyReading.coverImage}
-                alt={currentlyReading.title}
-                className="dashboard-cover"
-              />
-            )}
+        {currentlyReading.length > 0 ? (
+          <div className="dashboard-book-grid">
+            {currentlyReading.map((book) => (
+              <div
+                key={book._id}
+                className="dashboard-book"
+              >
+                {book.coverImage && (
+                  <img
+                    src={book.coverImage}
+                    alt={book.title}
+                    className="dashboard-cover"
+                  />
+                )}
 
-            <h3>{currentlyReading.title}</h3>
-            <p>{currentlyReading.author}</p>
+                <h3>{book.title}</h3>
+                <p>{book.author}</p>
+              </div>
+            ))}
           </div>
         ) : (
           <p>No books are currently being read.</p>

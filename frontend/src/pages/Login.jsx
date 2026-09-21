@@ -14,7 +14,6 @@ function Login() {
   });
 
   const [rememberMe, setRememberMe] = useState(false);
-
   const [error, setError] = useState("");
 
   function handleChange(event) {
@@ -26,15 +25,15 @@ function Login() {
 
   async function handleSubmit(event) {
     event.preventDefault();
+    setError("");
 
     try {
-      const data = await login(formData);
+      const data = await login({
+        ...formData,
+        rememberMe,
+      });
 
-      loginUser(
-        data.user,
-        data.token,
-        rememberMe
-      );
+      loginUser(data.user);
 
       navigate("/");
     } catch (err) {
@@ -45,6 +44,7 @@ function Login() {
   return (
     <div className="auth-page">
       <h1>Log In</h1>
+
       {location.state?.message && (
         <p>{location.state.message}</p>
       )}
@@ -69,6 +69,7 @@ function Login() {
           onChange={handleChange}
           required
         />
+
         <label>
           <input
             type="checkbox"

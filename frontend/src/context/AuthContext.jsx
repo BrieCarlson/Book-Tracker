@@ -1,91 +1,93 @@
 import {
   createContext,
   useCallback,
+  useEffect,
   useMemo,
   useState,
 } from "react";
+import { getCurrentUser, logout as logoutRequest } from "../api/auth";
 
 const AuthContext = createContext();
 
-function readStoredJson(key) {
-  const value =
-    localStorage.getItem(key) ||
-    sessionStorage.getItem(key);
-
-  if (!value) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(value);
-  } catch {
-    return null;
-  }
-}
-
-function readStoredToken() {
-  return (
-    localStorage.getItem("token") ||
-    sessionStorage.getItem("token")
-  );
-}
-
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() =>
-    readStoredJson("user")
-  );
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
-  const [token, setToken] = useState(() =>
-    readStoredToken()
-  );
+  const refreshUser = useCallback(async () => {
+    try {
+      const data = await getCurrentUser();
+      setUser(data.user);
+      return data.user;
+    } catch {
+      setUser(null);
+      return null;
+    }
+  }, []);
 
-  const login = useCallback((userData, jwt, rememberMe) => {
-    const storage = rememberMe
-      ? localStorage
-      : sessionStorage;
+  useEffect(() => {
+    let cancelled = false;
 
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    sessionStorage.removeItem("user");
-    sessionStorage.removeItem("token");
+    async function checkAuthentication() {
+      try {
+        const data = await getCurrentUser();
 
-    storage.setItem("user", JSON.stringify(userData));
-    storage.setItem("token", jwt);
+        if (!cancelled) {
+          setUser(data.user);
+        }
+      } catch {
+        if (!cancelled) {
+          setUser(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setAuthLoading(false);
+        }
+      }
+    }
 
+    checkAuthentication();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const login = useCallback((userData) => {
     setUser(userData);
-    setToken(jwt);
   }, []);
 
   const updateUser = useCallback((userData) => {
-    const storage = localStorage.getItem("token")
-      ? localStorage
-      : sessionStorage;
-
-    storage.setItem("user", JSON.stringify(userData));
     setUser(userData);
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-
-    sessionStorage.removeItem("user");
-    sessionStorage.removeItem("token");
+  const logout = useCallback(async () => {
+    try {
+      await logoutRequest();
+    } catch {
+      // Clear local state even if the server request fails.
+    }
 
     setUser(null);
-    setToken(null);
   }, []);
 
   const value = useMemo(
     () => ({
       user,
-      token,
       login,
       updateUser,
       logout,
-      isLoggedIn: Boolean(token),
+      refreshUser,
+      authLoading,
+      isLoggedIn: Boolean(user),
     }),
-    [user, token, login, updateUser, logout]
+    [
+      user,
+      login,
+      updateUser,
+      logout,
+      refreshUser,
+      authLoading,
+    ]
   );
 
   return (

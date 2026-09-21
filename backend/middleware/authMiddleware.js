@@ -1,16 +1,18 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const {
+  getAuthToken,
+  hasValidCsrfToken,
+} = require("../utils/authCookie");
 
 async function protect(req, res, next) {
-  const authHeader = req.headers.authorization;
+  const token = getAuthToken(req);
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  if (!token) {
     return res.status(401).json({
       message: "Not authorized.",
     });
   }
-
-  const token = authHeader.split(" ")[1];
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -30,6 +32,12 @@ async function protect(req, res, next) {
     if (decoded.tokenVersion !== currentTokenVersion) {
       return res.status(401).json({
         message: "Session expired. Please log in again.",
+      });
+    }
+
+    if (!hasValidCsrfToken(req)) {
+      return res.status(403).json({
+        message: "Invalid security token. Please refresh and try again.",
       });
     }
 

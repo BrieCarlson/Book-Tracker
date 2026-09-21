@@ -73,3 +73,10 @@
 .book-form button:hover {
     opacity: 0.85;
 }
+
+.book-form-help {
+    margin: -8px 0 15px;
+    color: var(--text);
+    font-size: 13px;
+    opacity: 0.8;
+}
