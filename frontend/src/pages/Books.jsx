@@ -34,6 +34,14 @@ function getSavedSortOption(userId) {
     : "newest";
 }
 
+function getBookTitle(book) {
+  return String(book?.title || "Unknown Title");
+}
+
+function getBookAuthor(book) {
+  return String(book?.author || "Unknown Author");
+}
+
 function Books({ books = [] }) {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -51,6 +59,7 @@ function Books({ books = [] }) {
     getSavedSortOption(userId)
   );
 
+  const [searchTerm, setSearchTerm] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
 
@@ -65,6 +74,9 @@ function Books({ books = [] }) {
 
   const safeBooks = Array.isArray(books) ? books : [];
   const allSelected = selectedStatuses.length === 0;
+  const normalizedSearchTerm = searchTerm
+    .trim()
+    .toLowerCase();
 
   function handleStatusChange(status) {
     setSelectedStatuses((current) => {
@@ -80,13 +92,29 @@ function Books({ books = [] }) {
     setSelectedStatuses([]);
   }
 
-  const filteredBooks = allSelected
-    ? [...safeBooks]
-    : safeBooks.filter((book) =>
-        selectedStatuses.includes(book.status)
-      );
+  function clearSearch() {
+    setSearchTerm("");
+  }
+
+  const filteredBooks = safeBooks.filter((book) => {
+    const matchesStatus =
+      allSelected || selectedStatuses.includes(book.status);
+
+    const title = getBookTitle(book).toLowerCase();
+    const author = getBookAuthor(book).toLowerCase();
+
+    const matchesSearch =
+      normalizedSearchTerm === "" ||
+      title.includes(normalizedSearchTerm) ||
+      author.includes(normalizedSearchTerm);
+
+    return matchesStatus && matchesSearch;
+  });
 
   const sortedBooks = [...filteredBooks].sort((a, b) => {
+    const titleA = getBookTitle(a);
+    const titleB = getBookTitle(b);
+
     switch (sortOption) {
       case "newest":
         return (
@@ -101,21 +129,21 @@ function Books({ books = [] }) {
         );
 
       case "title-az":
-        return a.title.localeCompare(b.title);
+        return titleA.localeCompare(titleB);
 
       case "title-za":
-        return b.title.localeCompare(a.title);
+        return titleB.localeCompare(titleA);
 
       case "rating-high":
         return (
           (b.rating || 0) - (a.rating || 0) ||
-          a.title.localeCompare(b.title)
+          titleA.localeCompare(titleB)
         );
 
       case "rating-low":
         return (
           (a.rating || 0) - (b.rating || 0) ||
-          a.title.localeCompare(b.title)
+          titleA.localeCompare(titleB)
         );
 
       default:
@@ -135,6 +163,30 @@ function Books({ books = [] }) {
         </div>
 
         <div className="bookshelf-actions">
+          <div className="bookshelf-search">
+            <input
+              type="search"
+              placeholder="Search title or author..."
+              aria-label="Search books by title or author"
+              value={searchTerm}
+              onChange={(event) =>
+                setSearchTerm(event.target.value)
+              }
+            />
+
+            {searchTerm && (
+              <button
+                type="button"
+                className="search-clear-button"
+                onClick={clearSearch}
+                aria-label="Clear search"
+                title="Clear search"
+              >
+                ×
+              </button>
+            )}
+          </div>
+
           <button
             type="button"
             className="add-book-button"
@@ -325,7 +377,7 @@ function Books({ books = [] }) {
         </div>
       ) : (
         <p className="empty-bookshelf">
-          No books match your current filters.
+          No books match your current search or filters.
         </p>
       )}
     </div>

@@ -1,15 +1,17 @@
 const API_URL = "http://localhost:5000/api/books";
 
-function getAuthHeaders() {
-  const token =
-    localStorage.getItem("token") ||
-    sessionStorage.getItem("token");
+function getCsrfToken() {
+  const cookies = document.cookie.split(";");
 
-  return token
-    ? {
-        Authorization: `Bearer ${token}`,
-      }
-    : {};
+  for (const cookie of cookies) {
+    const [name, ...valueParts] = cookie.trim().split("=");
+
+    if (name === "book_tracker_csrf") {
+      return decodeURIComponent(valueParts.join("="));
+    }
+  }
+
+  return "";
 }
 
 async function parseResponse(response) {
@@ -41,18 +43,21 @@ async function parseResponse(response) {
 
 export async function getBooks() {
   const response = await fetch(API_URL, {
-    headers: getAuthHeaders(),
+    credentials: "include",
   });
 
   return parseResponse(response);
 }
 
 export async function createBook(book) {
+  const csrfToken = getCsrfToken();
+
   const response = await fetch(API_URL, {
     method: "POST",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      ...getAuthHeaders(),
+      "X-CSRF-Token": csrfToken,
     },
     body: JSON.stringify(book),
   });
@@ -61,11 +66,14 @@ export async function createBook(book) {
 }
 
 export async function updateBook(id, book) {
+  const csrfToken = getCsrfToken();
+
   const response = await fetch(`${API_URL}/${id}`, {
     method: "PUT",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      ...getAuthHeaders(),
+      "X-CSRF-Token": csrfToken,
     },
     body: JSON.stringify(book),
   });
@@ -74,9 +82,14 @@ export async function updateBook(id, book) {
 }
 
 export async function deleteBook(id) {
+  const csrfToken = getCsrfToken();
+
   const response = await fetch(`${API_URL}/${id}`, {
     method: "DELETE",
-    headers: getAuthHeaders(),
+    credentials: "include",
+    headers: {
+      "X-CSRF-Token": csrfToken,
+    },
   });
 
   return parseResponse(response);

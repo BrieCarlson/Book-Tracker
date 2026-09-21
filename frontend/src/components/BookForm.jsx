@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
+import BookLookup from "./BookLookup";
 import "./BookForm.css";
 
 function BookForm({ onSubmit, book, setHasChanges }) {
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
+  const [isbn, setIsbn] = useState("");
   const [status, setStatus] = useState("Want To Read");
   const [rating, setRating] = useState(0);
   const [summary, setSummary] = useState("");
@@ -17,6 +19,7 @@ function BookForm({ onSubmit, book, setHasChanges }) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setTitle(book.title || "");
       setAuthor(book.author || "");
+      setIsbn(book.isbn || "");
       setStatus(book.status || "Want To Read");
       setRating(book.rating || 0);
       setSummary(book.summary || "");
@@ -27,14 +30,26 @@ function BookForm({ onSubmit, book, setHasChanges }) {
     }
   }, [book]);
 
+  function markAsChanged() {
+    if (setHasChanges) {
+      setHasChanges(true);
+    }
+  }
+
   function handleChange(setter) {
     return (event) => {
       setter(event.target.value);
-
-      if (setHasChanges) {
-        setHasChanges(true);
-      }
+      markAsChanged();
     };
+  }
+
+  function handleBookSelect(selectedBook) {
+    setTitle(selectedBook.title || "");
+    setAuthor(selectedBook.author || "");
+    setIsbn(selectedBook.isbn || "");
+    setCoverImage(selectedBook.coverImage || "");
+
+    markAsChanged();
   }
 
   async function handleSubmit(event) {
@@ -67,6 +82,7 @@ function BookForm({ onSubmit, book, setHasChanges }) {
     const bookData = {
       title: cleanTitle || "Unknown Title",
       author: cleanAuthor || "Unknown Author",
+      isbn: isbn.trim(),
       status,
       rating,
       summary,
@@ -96,6 +112,12 @@ function BookForm({ onSubmit, book, setHasChanges }) {
       <section className="form-section">
         <h2>Book Information</h2>
 
+        <BookLookup onSelect={handleBookSelect} />
+
+        <p className="book-form-help">
+          Search for a book above, or enter the information manually.
+        </p>
+
         <input
           placeholder="Title"
           value={title}
@@ -106,6 +128,12 @@ function BookForm({ onSubmit, book, setHasChanges }) {
           placeholder="Author"
           value={author}
           onChange={handleChange(setAuthor)}
+        />
+
+        <input
+          placeholder="ISBN (optional)"
+          value={isbn}
+          onChange={handleChange(setIsbn)}
         />
 
         <input
@@ -134,10 +162,7 @@ function BookForm({ onSubmit, book, setHasChanges }) {
           value={rating}
           onChange={(event) => {
             setRating(Number(event.target.value));
-
-            if (setHasChanges) {
-              setHasChanges(true);
-            }
+            markAsChanged();
           }}
         >
           <option value={0}>No Rating</option>

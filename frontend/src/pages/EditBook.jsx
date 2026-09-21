@@ -1,6 +1,15 @@
-import { useState, useEffect } from "react";
+import {
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
 import BookForm from "../components/BookForm";
-import { useNavigate, useParams } from "react-router-dom";
+import {
+  useNavigate,
+  useParams,
+  unstable_usePrompt as usePrompt,
+  useBeforeUnload,
+} from "react-router-dom";
 import { updateBook } from "../api/books";
 
 function EditBook({ books, setBooks }) {
@@ -8,44 +17,62 @@ function EditBook({ books, setBooks }) {
   const { id } = useParams();
 
   const [hasChanges, setHasChanges] = useState(false);
+  const [shouldNavigateAfterSave, setShouldNavigateAfterSave] =
+    useState(false);
   const [error, setError] = useState("");
 
   const editingBook = books.find(
     (book) => book._id === id
   );
 
-  useEffect(() => {
-    function handleBeforeUnload(event) {
-      if (hasChanges) {
+  const shouldBlockNavigation = useCallback(
+    ({ currentLocation, nextLocation }) => {
+      if (!hasChanges) {
+        return false;
+      }
+
+      return (
+        currentLocation.pathname !== nextLocation.pathname ||
+        currentLocation.search !== nextLocation.search ||
+        currentLocation.hash !== nextLocation.hash
+      );
+    },
+    [hasChanges]
+  );
+
+  usePrompt({
+    when: shouldBlockNavigation,
+    message:
+      "You have unsaved changes. Are you sure you want to leave?",
+  });
+
+  useBeforeUnload(
+    useCallback(
+      (event) => {
+        if (!hasChanges) {
+          return;
+        }
+
         event.preventDefault();
         event.returnValue = "";
-      }
+      },
+      [hasChanges]
+    )
+  );
+
+  useEffect(() => {
+    if (!shouldNavigateAfterSave || hasChanges) {
+      return;
     }
 
-    window.addEventListener(
-      "beforeunload",
-      handleBeforeUnload
-    );
-
-    return () => {
-      window.removeEventListener(
-        "beforeunload",
-        handleBeforeUnload
-      );
-    };
-  }, [hasChanges]);
+    navigate("/books");
+  }, [
+    shouldNavigateAfterSave,
+    hasChanges,
+    navigate,
+  ]);
 
   function handleBack() {
-    if (hasChanges) {
-      const confirmed = window.confirm(
-        "You have unsaved changes. Are you sure you want to leave?"
-      );
-
-      if (!confirmed) {
-        return;
-      }
-    }
-
     navigate("/books");
   }
 
@@ -70,7 +97,8 @@ function EditBook({ books, setBooks }) {
         )
       );
 
-      navigate("/books");
+      setHasChanges(false);
+      setShouldNavigateAfterSave(true);
     } catch (requestError) {
       setError(requestError.message);
       throw requestError;

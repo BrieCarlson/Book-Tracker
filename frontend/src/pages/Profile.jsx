@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   changePassword,
-  requestEmailChange,
+  updateEmail,
   updateProfile,
 } from "../api/auth";
 import { useAuth } from "../hooks/useAuth";
@@ -26,7 +26,6 @@ function Profile() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const [profileMessage, setProfileMessage] = useState("");
-  const [emailMessage, setEmailMessage] = useState("");
   const [passwordMessage, setPasswordMessage] = useState("");
 
   const [profileError, setProfileError] = useState("");
@@ -54,18 +53,22 @@ function Profile() {
   async function handleEmailSubmit(event) {
     event.preventDefault();
 
-    setEmailMessage("");
     setEmailError("");
 
     try {
-      const data = await requestEmailChange({
+      await updateEmail({
         newEmail,
         currentPassword: emailPassword,
       });
 
-      setEmailMessage(data.message);
-      setNewEmail("");
-      setEmailPassword("");
+      logout();
+
+      navigate("/login", {
+        state: {
+          message:
+            "Email updated successfully. Please sign in again.",
+        },
+      });
     } catch (error) {
       setEmailError(error.message);
     }
@@ -149,8 +152,8 @@ function Profile() {
         </p>
 
         <p>
-          Your current email will remain active until the new
-          address is confirmed.
+          Changing your email requires your current password.
+          You will need to sign in again after saving.
         </p>
 
         <form onSubmit={handleEmailSubmit}>
@@ -186,12 +189,8 @@ function Profile() {
             <p className="form-error">{emailError}</p>
           )}
 
-          {emailMessage && (
-            <p className="form-success">{emailMessage}</p>
-          )}
-
           <button type="submit">
-            Send confirmation email
+            Save email address
           </button>
         </form>
       </section>

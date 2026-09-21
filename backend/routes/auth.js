@@ -1,6 +1,5 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
-const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const validator = require("validator");
 const { rateLimit } = require("express-rate-limit");
@@ -8,14 +7,35 @@ const { rateLimit } = require("express-rate-limit");
 const User = require("../models/User");
 const protect = require("../middleware/authMiddleware");
 const {
-  sendEmailChangeConfirmation,
-  sendEmailChangeNotification,
-} = require("../utils/email");
+  clearAuthCookies,
+  setAuthCookies,
+} = require("../utils/authCookie");
 
 const router = express.Router();
 
 const PASSWORD_MIN_LENGTH = 12;
-const EMAIL_TOKEN_TTL_MS = 60 * 60 * 1000;
+
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    message:
+      "Too many registration attempts. Please try again later.",
+  },
+});
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    message:
+      "Too many login attempts. Please try again later.",
+  },
+});
 
 const emailChangeLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -27,13 +47,6 @@ const emailChangeLimiter = rateLimit({
 const passwordChangeLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 5,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-const confirmationLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 10,
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -51,19 +64,6 @@ function isValidEmail(email) {
       allow_utf8_local_part: true,
     })
   );
-}
-
-function hashToken(token) {
-  return crypto
-    .createHash("sha256")
-    .update(token)
-    .digest("hex");
-}
-
-function clearPendingEmail(user) {
-  user.pendingEmail = null;
-  user.pendingEmailTokenHash = null;
-  user.pendingEmailExpiresAt = null;
 }
 
 function getPublicUser(user) {
@@ -101,7 +101,7 @@ function handleServerError(res, error) {
   });
 }
 
-router.post("/register", async (req, res) => {
+router.post("/register", registerLimiter, async (req, res) => {
   try {
     const {
       name,
@@ -162,11 +162,12 @@ router.post("/register", async (req, res) => {
   }
 });
 
-router.post("/login", async (req, res) => {
+router.post("/login", loginLimiter, async (req, res) => {
   try {
     const {
       email: rawEmail,
       password,
+      rememberMe,
     } = req.body || {};
 
     const email = normalizeEmail(rawEmail);
@@ -192,13 +193,44 @@ router.post("/login", async (req, res) => {
       });
     }
 
+    setAuthCookies(
+      res,
+      createAuthToken(user),
+      rememberMe !== false
+    );
+
     return res.json({
-      token: createAuthToken(user),
       user: getPublicUser(user),
     });
   } catch (error) {
     return handleServerError(res, error);
   }
+});
+
+router.get("/me", protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found.",
+      });
+    }
+
+    return res.json({
+      user: getPublicUser(user),
+    });
+  } catch (error) {
+    return handleServerError(res, error);
+  }
+});
+
+router.post("/logout", (req, res) => {
+  clearAuthCookies(res);
+
+  return res.json({
+    message: "Logged out successfully.",
+  });
 });
 
 router.patch("/profile", protect, async (req, res) => {
@@ -262,7 +294,7 @@ router.post(
       }
 
       const user = await User.findById(req.user.id).select(
-        "+password +pendingEmailTokenHash +pendingEmailExpiresAt"
+        "+password"
       );
 
       if (!user) {
@@ -299,49 +331,15 @@ router.post(
         });
       }
 
-      const rawToken = crypto.randomBytes(32).toString("hex");
-
-      user.pendingEmail = newEmail;
-      user.pendingEmailTokenHash = hashToken(rawToken);
-      user.pendingEmailExpiresAt = new Date(
-        Date.now() + EMAIL_TOKEN_TTL_MS
-      );
+      user.email = newEmail;
+      user.tokenVersion = (user.tokenVersion || 0) + 1;
 
       await user.save();
 
-      const [
-        confirmationResult,
-        notificationResult,
-      ] = await Promise.allSettled([
-        sendEmailChangeConfirmation({
-          to: newEmail,
-          name: user.name,
-          token: rawToken,
-        }),
-        sendEmailChangeNotification({
-          to: user.email,
-          name: user.name,
-          newEmail,
-        }),
-      ]);
-
-      if (confirmationResult.status === "rejected") {
-        clearPendingEmail(user);
-        await user.save();
-
-        return res.status(503).json({
-          message:
-            "We could not send the confirmation email.",
-        });
-      }
-
-      if (notificationResult.status === "rejected") {
-        console.error(notificationResult.reason);
-      }
-
       return res.json({
         message:
-          "A confirmation link was sent to your new email address.",
+          "Email updated successfully. Please sign in again.",
+        user: getPublicUser(user),
       });
     } catch (error) {
       return handleServerError(res, error);
@@ -417,68 +415,6 @@ router.post(
       return res.json({
         message:
           "Password changed successfully. Please sign in again.",
-      });
-    } catch (error) {
-      return handleServerError(res, error);
-    }
-  }
-);
-
-router.post(
-  "/confirm-email-change",
-  confirmationLimiter,
-  async (req, res) => {
-    try {
-      const { token } = req.body || {};
-
-      if (
-        typeof token !== "string" ||
-        token.length < 32 ||
-        token.length > 200
-      ) {
-        return res.status(400).json({
-          message: "Invalid or expired confirmation link.",
-        });
-      }
-
-      const user = await User.findOne({
-        pendingEmailTokenHash: hashToken(token),
-        pendingEmailExpiresAt: {
-          $gt: new Date(),
-        },
-      }).select(
-        "+pendingEmailTokenHash +pendingEmailExpiresAt"
-      );
-
-      if (!user || !user.pendingEmail) {
-        return res.status(400).json({
-          message: "Invalid or expired confirmation link.",
-        });
-      }
-
-      const emailAlreadyTaken = await User.findOne({
-        email: user.pendingEmail,
-        _id: { $ne: user._id },
-      });
-
-      if (emailAlreadyTaken) {
-        clearPendingEmail(user);
-        await user.save();
-
-        return res.status(409).json({
-          message: "That email address is no longer available.",
-        });
-      }
-
-      user.email = user.pendingEmail;
-      clearPendingEmail(user);
-      user.tokenVersion = (user.tokenVersion || 0) + 1;
-
-      await user.save();
-
-      return res.json({
-        message:
-          "Your email address was confirmed. Please sign in again.",
       });
     } catch (error) {
       return handleServerError(res, error);

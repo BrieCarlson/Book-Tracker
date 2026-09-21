@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import ConfirmEmailChange from "./pages/ConfirmEmailChange";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Routes,
+  Route,
+} from "react-router-dom";
 
 import Books from "./pages/Books";
 import AddBook from "./pages/AddBook";
@@ -14,109 +18,147 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import HomeRoute from "./components/HomeRoute";
 import Profile from "./pages/Profile";
 import { useAuth } from "./hooks/useAuth";
-
 import { getBooks } from "./api/books";
+import ScrollToTop from "./components/ScrollToTop";
 
-function App() {
-  const { user } = useAuth();
+function AppRoutes() {
+  const {
+    user,
+    authLoading,
+  } = useAuth();
+
   const [books, setBooks] = useState([]);
+
   useEffect(() => {
     async function loadBooks() {
       if (!user) {
         setBooks([]);
         return;
       }
-      const savedBooks = await getBooks();
 
-      if (Array.isArray(savedBooks)) {
-        setBooks(savedBooks);
-      } else {
+      try {
+        const savedBooks = await getBooks();
+
+        if (Array.isArray(savedBooks)) {
+          setBooks(savedBooks);
+        } else {
+          setBooks([]);
+        }
+      } catch (error) {
+        console.error(
+          "Failed to load books:",
+          error.message
+        );
         setBooks([]);
       }
     }
-    loadBooks();
-  }, [user]);
+
+    if (!authLoading) {
+      loadBooks();
+    }
+  }, [user, authLoading]);
+
+  if (authLoading) {
+    return <p>Loading...</p>;
+  }
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<HomeRoute books={books} />} />
-          <Route
-            path="books"
-            element={
-              <ProtectedRoute>
-                <Books
-                  books={books}
-                  setBooks={setBooks}
-                />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="add"
-            element={
-              <ProtectedRoute>
-                <AddBook
-                  setBooks={setBooks}
-                />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="edit/:id"
-            element={
-              <ProtectedRoute>
-                <EditBook
-                  books={books}
-                  setBooks={setBooks}
-                />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="books/:id"
-            element={
-              <ProtectedRoute>
-                <BookDetails
-                  books={books}
-                  setBooks={setBooks}
-                />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="stats"
-            element={
-              <ProtectedRoute>
-                <Stats books={books} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="login"
-            element={<Login />}
-          />
-          <Route
-            path="register"
-            element={<Register />}
-          />
-          <Route
-            path="confirm-email-change"
-            element={<ConfirmEmailChange />}
-          />
-          <Route
-            path="profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <>
+    <ScrollToTop />
+    <Routes>
+      <Route path="/" element={<Layout />}>
+        <Route
+          index
+          element={<HomeRoute books={books} />}
+        />
+
+        <Route
+          path="books"
+          element={
+            <ProtectedRoute>
+              <Books
+                books={books}
+                setBooks={setBooks}
+              />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="add"
+          element={
+            <ProtectedRoute>
+              <AddBook setBooks={setBooks} />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="edit/:id"
+          element={
+            <ProtectedRoute>
+              <EditBook
+                books={books}
+                setBooks={setBooks}
+              />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="books/:id"
+          element={
+            <ProtectedRoute>
+              <BookDetails
+                books={books}
+                setBooks={setBooks}
+              />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="stats"
+          element={
+            <ProtectedRoute>
+              <Stats books={books} />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="login"
+          element={<Login />}
+        />
+
+        <Route
+          path="register"
+          element={<Register />}
+        />
+
+        <Route
+          path="profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+    </Routes>
+    </>
   );
+}
+
+const router = createBrowserRouter([
+  {
+    path: "*",
+    element: <AppRoutes />,
+  },
+]);
+
+function App() {
+  return <RouterProvider router={router} />;
 }
 
 export default App;

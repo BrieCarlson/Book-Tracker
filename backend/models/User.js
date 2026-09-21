@@ -28,24 +28,6 @@ const userSchema = new mongoose.Schema(
       default: 0,
     },
 
-    pendingEmail: {
-      type: String,
-      default: null,
-      lowercase: true,
-      trim: true,
-    },
-
-    pendingEmailTokenHash: {
-      type: String,
-      default: null,
-      select: false,
-    },
-
-    pendingEmailExpiresAt: {
-      type: Date,
-      default: null,
-      select: false,
-    },
   },
   {
     timestamps: true,
