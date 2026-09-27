@@ -21,13 +21,26 @@ function BookDetails({ books, setBooks }) {
 
   const summaryLimit = 200;
   const notesLimit = 200;
+
   const summary = book.summary?.trim() || "";
   const notes = book.notes?.trim() || "";
+
   const hasRating = Number(book.rating) > 0;
   const hasDateStarted = Boolean(book.dateStarted);
   const hasDateFinished = Boolean(book.dateFinished);
+
+  const hasGenre = Boolean(book.genre?.trim());
+  const hasSeries = Boolean(book.series?.trim());
+  const hasIsbn = Boolean(book.isbn?.trim());
+  const hasPages = Number(book.pages) > 0;
+  const hasPublisher = Boolean(book.publisher?.trim());
+  const hasPublicationDate = Boolean(
+    book.publicationDate?.trim()
+  );
+
   const summaryIsLong = summary.length > summaryLimit;
   const notesIsLong = notes.length > notesLimit;
+
   const displayedSummary =
     summaryExpanded || !summaryIsLong
       ? summary
@@ -48,7 +61,8 @@ function BookDetails({ books, setBooks }) {
 
       setBooks((currentBooks) =>
         currentBooks.filter(
-          (currentBook) => currentBook._id !== book._id
+          (currentBook) =>
+            currentBook._id !== book._id
         )
       );
 
@@ -58,46 +72,114 @@ function BookDetails({ books, setBooks }) {
 
   return (
     <div className="book-details">
-        <div className="details-back">
-            <button onClick={() => navigate("/books")}>
-                ←
-            </button>
-        </div>
-        <div className="details-header">
+      <div className="details-back">
+        <button
+          type="button"
+          onClick={() => navigate("/books")}
+        >
+          ←
+        </button>
+      </div>
+
+      <div className="details-header">
         {book.coverImage && (
-            <img
+          <img
             src={book.coverImage}
             alt={`${book.title} cover`}
             className="details-cover"
-            />
+          />
         )}
 
         <div className="details-title">
-            <h1>{book.title}</h1>
-            <h2>{book.author}</h2>
+          <h1>{book.title}</h1>
+          <h2>{book.author}</h2>
         </div>
       </div>
 
+      <section className="details-section book-information">
+        <h3>Book Information</h3>
+
+        {hasGenre && (
+          <p>
+            <strong>Genre:</strong>{" "}
+            {book.genre}
+          </p>
+        )}
+
+        {hasSeries && (
+          <p>
+            <strong>Series:</strong>{" "}
+            {book.series}
+          </p>
+        )}
+
+        {hasIsbn && (
+          <p>
+            <strong>ISBN:</strong>{" "}
+            {book.isbn}
+          </p>
+        )}
+
+        {hasPages && (
+          <p>
+            <strong>Pages:</strong>{" "}
+            {book.pages}
+          </p>
+        )}
+
+        {hasPublisher && (
+          <p>
+            <strong>Publisher:</strong>{" "}
+            {book.publisher}
+          </p>
+        )}
+
+        {hasPublicationDate && (
+          <p>
+            <strong>Publication Date:</strong>{" "}
+            {book.publicationDate}
+          </p>
+        )}
+
+        {!hasGenre &&
+          !hasSeries &&
+          !hasIsbn &&
+          !hasPages &&
+          !hasPublisher &&
+          !hasPublicationDate && (
+            <p className="details-empty">
+              No additional book information
+              has been added.
+            </p>
+          )}
+      </section>
+
       <section className="details-section reading-details">
         <h3>Reading Information</h3>
+
         <p>
-          Status: {book.status}
+          <strong>Status:</strong>{" "}
+          {book.status}
         </p>
+
         {hasRating && (
           <p>
-            Rating: {book.rating}/5
+            <strong>Rating:</strong>{" "}
+            {book.rating}/5
           </p>
         )}
 
         {hasDateStarted && (
           <p>
-            Date Started: {formatDate(book.dateStarted)}
+            <strong>Date Started:</strong>{" "}
+            {formatDate(book.dateStarted)}
           </p>
         )}
 
         {hasDateFinished && (
           <p>
-            Date Finished: {formatDate(book.dateFinished)}
+            <strong>Date Finished:</strong>{" "}
+            {formatDate(book.dateFinished)}
           </p>
         )}
 
@@ -108,7 +190,9 @@ function BookDetails({ books, setBooks }) {
 
         <p>
           <strong>Last Updated:</strong>{" "}
-          {formatDateTime(book.updatedAt || book.createdAt)}
+          {formatDateTime(
+            book.updatedAt || book.createdAt
+          )}
         </p>
       </section>
 
@@ -122,8 +206,11 @@ function BookDetails({ books, setBooks }) {
 
           {summaryIsLong && (
             <button
+              type="button"
               onClick={() =>
-                setSummaryExpanded(!summaryExpanded)
+                setSummaryExpanded(
+                  !summaryExpanded
+                )
               }
             >
               {summaryExpanded
@@ -144,8 +231,11 @@ function BookDetails({ books, setBooks }) {
 
           {notesIsLong && (
             <button
+              type="button"
               onClick={() =>
-                setNotesExpanded(!notesExpanded)
+                setNotesExpanded(
+                  !notesExpanded
+                )
               }
             >
               {notesExpanded
@@ -158,6 +248,7 @@ function BookDetails({ books, setBooks }) {
 
       <div className="details-actions">
         <button
+          type="button"
           onClick={() =>
             navigate(`/edit/${book._id}`)
           }
@@ -165,7 +256,10 @@ function BookDetails({ books, setBooks }) {
           Edit
         </button>
 
-        <button onClick={handleDelete}>
+        <button
+          type="button"
+          onClick={handleDelete}
+        >
           Delete
         </button>
       </div>

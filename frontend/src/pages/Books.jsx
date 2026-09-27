@@ -42,6 +42,17 @@ function getBookAuthor(book) {
   return String(book?.author || "Unknown Author");
 }
 
+function getBookGenres(book) {
+  if (!book?.genre) {
+    return [];
+  }
+
+  return String(book.genre)
+    .split(",")
+    .map((genre) => genre.trim())
+    .filter(Boolean);
+}
+
 function Books({ books = [] }) {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -53,6 +64,9 @@ function Books({ books = [] }) {
     : null;
 
   const [selectedStatuses, setSelectedStatuses] =
+    useState([]);
+
+  const [selectedGenres, setSelectedGenres] =
     useState([]);
 
   const [sortOption, setSortOption] = useState(() =>
@@ -72,84 +86,141 @@ function Books({ books = [] }) {
     }
   }, [sortStorageKey, sortOption]);
 
-  const safeBooks = Array.isArray(books) ? books : [];
-  const allSelected = selectedStatuses.length === 0;
-  const normalizedSearchTerm = searchTerm
-    .trim()
-    .toLowerCase();
+  const safeBooks = Array.isArray(books)
+    ? books
+    : [];
+
+  const availableGenres = [
+    ...new Set(
+      safeBooks
+        .flatMap((book) => getBookGenres(book))
+    ),
+  ].sort((a, b) =>
+    a.localeCompare(b)
+  );
+
+  const allStatusesSelected =
+    selectedStatuses.length === 0;
+
+  const allGenresSelected =
+    selectedGenres.length === 0;
+
+  const normalizedSearchTerm =
+    searchTerm.trim().toLowerCase();
 
   function handleStatusChange(status) {
     setSelectedStatuses((current) => {
       if (current.includes(status)) {
-        return current.filter((item) => item !== status);
+        return current.filter(
+          (item) => item !== status
+        );
       }
 
       return [...current, status];
     });
   }
 
+  function handleGenreChange(genre) {
+    setSelectedGenres((current) => {
+      if (current.includes(genre)) {
+        return current.filter(
+          (item) => item !== genre
+        );
+      }
+
+      return [...current, genre];
+    });
+  }
+
   function clearFilters() {
     setSelectedStatuses([]);
+    setSelectedGenres([]);
   }
 
   function clearSearch() {
     setSearchTerm("");
   }
 
-  const filteredBooks = safeBooks.filter((book) => {
-    const matchesStatus =
-      allSelected || selectedStatuses.includes(book.status);
+  const activeFilterCount =
+    selectedStatuses.length +
+    selectedGenres.length;
 
-    const title = getBookTitle(book).toLowerCase();
-    const author = getBookAuthor(book).toLowerCase();
+  const filteredBooks = safeBooks.filter(
+    (book) => {
+      const matchesStatus =
+        allStatusesSelected ||
+        selectedStatuses.includes(book.status);
 
-    const matchesSearch =
-      normalizedSearchTerm === "" ||
-      title.includes(normalizedSearchTerm) ||
-      author.includes(normalizedSearchTerm);
+      const bookGenres = getBookGenres(book);
 
-    return matchesStatus && matchesSearch;
-  });
-
-  const sortedBooks = [...filteredBooks].sort((a, b) => {
-    const titleA = getBookTitle(a);
-    const titleB = getBookTitle(b);
-
-    switch (sortOption) {
-      case "newest":
-        return (
-          new Date(b.dateAdded || 0) -
-          new Date(a.dateAdded || 0)
+      const matchesGenre =
+        allGenresSelected ||
+        selectedGenres.some((genre) =>
+          bookGenres.includes(genre)
         );
 
-      case "oldest":
-        return (
-          new Date(a.dateAdded || 0) -
-          new Date(b.dateAdded || 0)
-        );
+      const title =
+        getBookTitle(book).toLowerCase();
 
-      case "title-az":
-        return titleA.localeCompare(titleB);
+      const author =
+        getBookAuthor(book).toLowerCase();
 
-      case "title-za":
-        return titleB.localeCompare(titleA);
+      const matchesSearch =
+        normalizedSearchTerm === "" ||
+        title.includes(normalizedSearchTerm) ||
+        author.includes(normalizedSearchTerm);
 
-      case "rating-high":
-        return (
-          (b.rating || 0) - (a.rating || 0) ||
-          titleA.localeCompare(titleB)
-        );
-
-      case "rating-low":
-        return (
-          (a.rating || 0) - (b.rating || 0) ||
-          titleA.localeCompare(titleB)
-        );
-
-      default:
-        return 0;
+      return (
+        matchesStatus &&
+        matchesGenre &&
+        matchesSearch
+      );
     }
-  });
+  );
+
+  const sortedBooks = [...filteredBooks].sort(
+    (a, b) => {
+      const titleA = getBookTitle(a);
+      const titleB = getBookTitle(b);
+
+      switch (sortOption) {
+        case "newest":
+          return (
+            new Date(b.dateAdded || 0) -
+            new Date(a.dateAdded || 0)
+          );
+
+        case "oldest":
+          return (
+            new Date(a.dateAdded || 0) -
+            new Date(b.dateAdded || 0)
+          );
+
+        case "title-az":
+          return titleA.localeCompare(titleB);
+
+        case "title-za":
+          return titleB.localeCompare(titleA);
+
+        case "rating-high":
+          return (
+            (b.rating || 0) -
+              (a.rating || 0) ||
+            titleA.localeCompare(titleB)
+          );
+
+        case "rating-low":
+          return (
+            (a.rating || 0) -
+              (b.rating || 0) ||
+            titleA.localeCompare(titleB)
+          );
+
+        default:
+          return 0;
+      }
+    }
+  );
 
   return (
     <div className="bookshelf-page">
@@ -158,7 +229,8 @@ function Books({ books = [] }) {
           <h1>My Books</h1>
 
           <p>
-            Showing {sortedBooks.length} of {safeBooks.length} books
+            Showing {sortedBooks.length} of{" "}
+            {safeBooks.length} books
           </p>
         </div>
 
@@ -170,7 +242,9 @@ function Books({ books = [] }) {
               aria-label="Search books by title or author"
               value={searchTerm}
               onChange={(event) =>
-                setSearchTerm(event.target.value)
+                setSearchTerm(
+                  event.target.value
+                )
               }
             />
 
@@ -203,15 +277,17 @@ function Books({ books = [] }) {
                 type="button"
                 className="menu-button"
                 onClick={() => {
-                  setFiltersOpen(!filtersOpen);
+                  setFiltersOpen(
+                    !filtersOpen
+                  );
                   setSortOpen(false);
                 }}
               >
                 Filters
 
-                {!allSelected && (
+                {activeFilterCount > 0 && (
                   <span className="menu-count">
-                    {selectedStatuses.length}
+                    {activeFilterCount}
                   </span>
                 )}
               </button>
@@ -219,45 +295,128 @@ function Books({ books = [] }) {
               {filtersOpen && (
                 <div className="menu-panel">
                   <div className="menu-panel-header">
-                    <strong>Filter by Status</strong>
+                    <strong>
+                      Filters
+                    </strong>
 
-                    {!allSelected && (
+                    {activeFilterCount >
+                      0 && (
                       <button
                         type="button"
                         className="clear-button"
-                        onClick={clearFilters}
+                        onClick={
+                          clearFilters
+                        }
                       >
                         Clear
                       </button>
                     )}
                   </div>
 
-                  <label className="checkbox-option">
-                    <input
-                      type="checkbox"
-                      checked={allSelected}
-                      onChange={clearFilters}
-                    />
+                  <div className="filter-section">
+                    <strong>
+                      Filter by Status
+                    </strong>
 
-                    <span>All</span>
-                  </label>
-
-                  {statuses.map((status) => (
-                    <label
-                      key={status}
-                      className="checkbox-option"
-                    >
+                    <label className="checkbox-option">
                       <input
                         type="checkbox"
-                        checked={selectedStatuses.includes(status)}
+                        checked={
+                          allStatusesSelected
+                        }
                         onChange={() =>
-                          handleStatusChange(status)
+                          setSelectedStatuses(
+                            []
+                          )
                         }
                       />
 
-                      <span>{status}</span>
+                      <span>All</span>
                     </label>
-                  ))}
+
+                    {statuses.map(
+                      (status) => (
+                        <label
+                          key={status}
+                          className="checkbox-option"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedStatuses.includes(
+                              status
+                            )}
+                            onChange={() =>
+                              handleStatusChange(
+                                status
+                              )
+                            }
+                          />
+
+                          <span>
+                            {status}
+                          </span>
+                        </label>
+                      )
+                    )}
+                  </div>
+
+                  <div className="filter-section">
+                    <strong>
+                      Filter by Genre
+                    </strong>
+
+                    {availableGenres.length >
+                    0 ? (
+                      <>
+                        <label className="checkbox-option">
+                          <input
+                            type="checkbox"
+                            checked={
+                              allGenresSelected
+                            }
+                            onChange={() =>
+                              setSelectedGenres(
+                                []
+                              )
+                            }
+                          />
+
+                          <span>
+                            All Genres
+                          </span>
+                        </label>
+
+                        {availableGenres.map(
+                          (genre) => (
+                            <label
+                              key={genre}
+                              className="checkbox-option"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedGenres.includes(
+                                  genre
+                                )}
+                                onChange={() =>
+                                  handleGenreChange(
+                                    genre
+                                  )
+                                }
+                              />
+
+                              <span>
+                                {genre}
+                              </span>
+                            </label>
+                          )
+                        )}
+                      </>
+                    ) : (
+                      <p className="filter-empty">
+                        No genres available yet.
+                      </p>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -281,13 +440,20 @@ function Books({ books = [] }) {
                       type="radio"
                       name="sort"
                       value="newest"
-                      checked={sortOption === "newest"}
+                      checked={
+                        sortOption ===
+                        "newest"
+                      }
                       onChange={(event) =>
-                        setSortOption(event.target.value)
+                        setSortOption(
+                          event.target.value
+                        )
                       }
                     />
 
-                    <span>Date Added: Newest First</span>
+                    <span>
+                      Date Added: Newest First
+                    </span>
                   </label>
 
                   <label className="sort-option">
@@ -295,13 +461,20 @@ function Books({ books = [] }) {
                       type="radio"
                       name="sort"
                       value="oldest"
-                      checked={sortOption === "oldest"}
+                      checked={
+                        sortOption ===
+                        "oldest"
+                      }
                       onChange={(event) =>
-                        setSortOption(event.target.value)
+                        setSortOption(
+                          event.target.value
+                        )
                       }
                     />
 
-                    <span>Date Added: Oldest First</span>
+                    <span>
+                      Date Added: Oldest First
+                    </span>
                   </label>
 
                   <label className="sort-option">
@@ -309,13 +482,20 @@ function Books({ books = [] }) {
                       type="radio"
                       name="sort"
                       value="title-az"
-                      checked={sortOption === "title-az"}
+                      checked={
+                        sortOption ===
+                        "title-az"
+                      }
                       onChange={(event) =>
-                        setSortOption(event.target.value)
+                        setSortOption(
+                          event.target.value
+                        )
                       }
                     />
 
-                    <span>Title: A-Z</span>
+                    <span>
+                      Title: A-Z
+                    </span>
                   </label>
 
                   <label className="sort-option">
@@ -323,13 +503,20 @@ function Books({ books = [] }) {
                       type="radio"
                       name="sort"
                       value="title-za"
-                      checked={sortOption === "title-za"}
+                      checked={
+                        sortOption ===
+                        "title-za"
+                      }
                       onChange={(event) =>
-                        setSortOption(event.target.value)
+                        setSortOption(
+                          event.target.value
+                        )
                       }
                     />
 
-                    <span>Title: Z-A</span>
+                    <span>
+                      Title: Z-A
+                    </span>
                   </label>
 
                   <label className="sort-option">
@@ -337,13 +524,20 @@ function Books({ books = [] }) {
                       type="radio"
                       name="sort"
                       value="rating-high"
-                      checked={sortOption === "rating-high"}
+                      checked={
+                        sortOption ===
+                        "rating-high"
+                      }
                       onChange={(event) =>
-                        setSortOption(event.target.value)
+                        setSortOption(
+                          event.target.value
+                        )
                       }
                     />
 
-                    <span>Rating: Highest First</span>
+                    <span>
+                      Rating: Highest First
+                    </span>
                   </label>
 
                   <label className="sort-option">
@@ -351,13 +545,20 @@ function Books({ books = [] }) {
                       type="radio"
                       name="sort"
                       value="rating-low"
-                      checked={sortOption === "rating-low"}
+                      checked={
+                        sortOption ===
+                        "rating-low"
+                      }
                       onChange={(event) =>
-                        setSortOption(event.target.value)
+                        setSortOption(
+                          event.target.value
+                        )
                       }
                     />
 
-                    <span>Rating: Lowest First</span>
+                    <span>
+                      Rating: Lowest First
+                    </span>
                   </label>
                 </div>
               )}
@@ -377,7 +578,8 @@ function Books({ books = [] }) {
         </div>
       ) : (
         <p className="empty-bookshelf">
-          No books match your current search or filters.
+          No books match your current search or
+          filters.
         </p>
       )}
     </div>

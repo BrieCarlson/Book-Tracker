@@ -2,10 +2,21 @@ import { useState, useEffect } from "react";
 import BookLookup from "./BookLookup";
 import "./BookForm.css";
 
-function BookForm({ onSubmit, book, setHasChanges }) {
+function BookForm({
+  onSubmit,
+  book,
+  books = [],
+  setHasChanges,
+}) {
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [isbn, setIsbn] = useState("");
+  const [genre, setGenre] = useState("");
+  const [series, setSeries] = useState("");
+  const [pages, setPages] = useState("");
+  const [publisher, setPublisher] = useState("");
+  const [publicationDate, setPublicationDate] =
+    useState("");
   const [status, setStatus] = useState("Want To Read");
   const [rating, setRating] = useState(0);
   const [summary, setSummary] = useState("");
@@ -20,7 +31,21 @@ function BookForm({ onSubmit, book, setHasChanges }) {
       setTitle(book.title || "");
       setAuthor(book.author || "");
       setIsbn(book.isbn || "");
-      setStatus(book.status || "Want To Read");
+      setGenre(book.genre || "");
+      setSeries(book.series || "");
+      setPages(
+        book.pages !== null &&
+          book.pages !== undefined
+          ? String(book.pages)
+          : ""
+      );
+      setPublisher(book.publisher || "");
+      setPublicationDate(
+        book.publicationDate || ""
+      );
+      setStatus(
+        book.status || "Want To Read"
+      );
       setRating(book.rating || 0);
       setSummary(book.summary || "");
       setNotes(book.notes || "");
@@ -29,6 +54,30 @@ function BookForm({ onSubmit, book, setHasChanges }) {
       setCoverImage(book.coverImage || "");
     }
   }, [book]);
+
+  const existingGenres = [
+    ...new Set(
+      books
+        .flatMap((currentBook) =>
+          String(currentBook.genre || "")
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean)
+        )
+    ),
+  ].sort((a, b) => a.localeCompare(b));
+
+  const existingSeries = [
+    ...new Set(
+      books
+        .flatMap((currentBook) =>
+          String(currentBook.series || "")
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean)
+        )
+    ),
+  ].sort((a, b) => a.localeCompare(b));
 
   function markAsChanged() {
     if (setHasChanges) {
@@ -47,7 +96,21 @@ function BookForm({ onSubmit, book, setHasChanges }) {
     setTitle(selectedBook.title || "");
     setAuthor(selectedBook.author || "");
     setIsbn(selectedBook.isbn || "");
-    setCoverImage(selectedBook.coverImage || "");
+    setGenre(selectedBook.genre || "");
+    setSeries(selectedBook.series || "");
+    setPages(
+      selectedBook.pages !== null &&
+        selectedBook.pages !== undefined
+        ? String(selectedBook.pages)
+        : ""
+    );
+    setPublisher(selectedBook.publisher || "");
+    setPublicationDate(
+      selectedBook.publicationDate || ""
+    );
+    setCoverImage(
+      selectedBook.coverImage || ""
+    );
 
     markAsChanged();
   }
@@ -68,21 +131,38 @@ function BookForm({ onSubmit, book, setHasChanges }) {
     }
 
     if (missingFields.length > 0) {
-      const shouldSaveAsUnknown = window.confirm(
-        `This book is missing its ${missingFields.join(
-          " and "
-        )}. Save it as Unknown instead?`
-      );
+      const shouldSaveAsUnknown =
+        window.confirm(
+          `This book is missing its ${missingFields.join(
+            " and "
+          )}. Save it as Unknown instead?`
+        );
 
       if (!shouldSaveAsUnknown) {
         return;
       }
     }
 
+    const cleanPages = pages
+      ? Number.parseInt(pages, 10)
+      : null;
+
     const bookData = {
-      title: cleanTitle || "Unknown Title",
-      author: cleanAuthor || "Unknown Author",
+      title:
+        cleanTitle || "Unknown Title",
+      author:
+        cleanAuthor || "Unknown Author",
       isbn: isbn.trim(),
+      genre: genre.trim(),
+      series: series.trim(),
+      pages:
+        Number.isFinite(cleanPages) &&
+        cleanPages > 0
+          ? cleanPages
+          : null,
+      publisher: publisher.trim(),
+      publicationDate:
+        publicationDate.trim(),
       status,
       rating,
       summary,
@@ -106,16 +186,22 @@ function BookForm({ onSubmit, book, setHasChanges }) {
   }
 
   return (
-    <form className="book-form" onSubmit={handleSubmit}>
+    <form
+      className="book-form"
+      onSubmit={handleSubmit}
+    >
       <h1>{book ? "Edit Book" : "Add Book"}</h1>
 
       <section className="form-section">
         <h2>Book Information</h2>
 
-        <BookLookup onSelect={handleBookSelect} />
+        <BookLookup
+          onSelect={handleBookSelect}
+        />
 
         <p className="book-form-help">
-          Search for a book above, or enter the information manually.
+          Search for a book above, or enter the
+          information manually.
         </p>
 
         <input
@@ -130,16 +216,84 @@ function BookForm({ onSubmit, book, setHasChanges }) {
           onChange={handleChange(setAuthor)}
         />
 
+        <label htmlFor="genre">
+          Genre
+        </label>
+
         <input
-          placeholder="ISBN (optional)"
+          id="genre"
+          list="existing-genres"
+          placeholder="Genre"
+          value={genre}
+          onChange={handleChange(setGenre)}
+          autoComplete="off"
+        />
+
+        <datalist id="existing-genres">
+          {existingGenres.map((existingGenre) => (
+            <option
+              key={existingGenre}
+              value={existingGenre}
+            />
+          ))}
+        </datalist>
+
+        <label htmlFor="series">
+          Series
+        </label>
+
+        <input
+          id="series"
+          list="existing-series"
+          placeholder="Series"
+          value={series}
+          onChange={handleChange(setSeries)}
+          autoComplete="off"
+        />
+
+        <datalist id="existing-series">
+          {existingSeries.map((existingSeriesName) => (
+            <option
+              key={existingSeriesName}
+              value={existingSeriesName}
+            />
+          ))}
+        </datalist>
+
+        <input
+          placeholder="ISBN"
           value={isbn}
           onChange={handleChange(setIsbn)}
         />
 
         <input
+          type="number"
+          min="1"
+          placeholder="Page Count"
+          value={pages}
+          onChange={handleChange(setPages)}
+        />
+
+        <input
+          placeholder="Publisher"
+          value={publisher}
+          onChange={handleChange(setPublisher)}
+        />
+
+        <input
+          placeholder="Publication Date"
+          value={publicationDate}
+          onChange={handleChange(
+            setPublicationDate
+          )}
+        />
+
+        <input
           placeholder="Cover Image URL"
           value={coverImage}
-          onChange={handleChange(setCoverImage)}
+          onChange={handleChange(
+            setCoverImage
+          )}
         />
       </section>
 
@@ -150,9 +304,15 @@ function BookForm({ onSubmit, book, setHasChanges }) {
           value={status}
           onChange={handleChange(setStatus)}
         >
-          <option value="Want To Read">Want To Read</option>
-          <option value="Reading">Reading</option>
-          <option value="Finished">Finished</option>
+          <option value="Want To Read">
+            Want To Read
+          </option>
+          <option value="Reading">
+            Reading
+          </option>
+          <option value="Finished">
+            Finished
+          </option>
           <option value="Did Not Finish">
             Did Not Finish
           </option>
@@ -161,16 +321,30 @@ function BookForm({ onSubmit, book, setHasChanges }) {
         <select
           value={rating}
           onChange={(event) => {
-            setRating(Number(event.target.value));
+            setRating(
+              Number(event.target.value)
+            );
             markAsChanged();
           }}
         >
-          <option value={0}>No Rating</option>
-          <option value={1}>1 Star</option>
-          <option value={2}>2 Stars</option>
-          <option value={3}>3 Stars</option>
-          <option value={4}>4 Stars</option>
-          <option value={5}>5 Stars</option>
+          <option value={0}>
+            No Rating
+          </option>
+          <option value={1}>
+            1 Star
+          </option>
+          <option value={2}>
+            2 Stars
+          </option>
+          <option value={3}>
+            3 Stars
+          </option>
+          <option value={4}>
+            4 Stars
+          </option>
+          <option value={5}>
+            5 Stars
+          </option>
         </select>
       </section>
 
@@ -186,7 +360,9 @@ function BookForm({ onSubmit, book, setHasChanges }) {
             id="dateStarted"
             type="date"
             value={dateStarted}
-            onChange={handleChange(setDateStarted)}
+            onChange={handleChange(
+              setDateStarted
+            )}
           />
         </div>
 
@@ -199,7 +375,9 @@ function BookForm({ onSubmit, book, setHasChanges }) {
             id="dateFinished"
             type="date"
             value={dateFinished}
-            onChange={handleChange(setDateFinished)}
+            onChange={handleChange(
+              setDateFinished
+            )}
           />
         </div>
       </section>

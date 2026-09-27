@@ -51,7 +51,9 @@ function BookLookup({ onSelect }) {
           setSuggestions(results);
           setHasSearched(true);
         } catch (requestError) {
-          if (requestError.name === "AbortError") {
+          if (
+            requestError.name === "AbortError"
+          ) {
             return;
           }
 
@@ -123,68 +125,79 @@ function BookLookup({ onSelect }) {
         onKeyDown={handleKeyDown}
       />
 
-      {isOpen && (loading || error || hasSearched) && (
-        <div className="book-lookup-results">
-          {loading && (
-            <p className="book-lookup-message">
-              Searching...
-            </p>
-          )}
-
-          {!loading && error && (
-            <p className="book-lookup-message book-lookup-error">
-              {error}
-            </p>
-          )}
-
-          {!loading &&
-            !error &&
-            hasSearched &&
-            suggestions.length === 0 && (
+      {isOpen &&
+        (loading || error || hasSearched) && (
+          <div className="book-lookup-results">
+            {loading && (
               <p className="book-lookup-message">
-                No matching books found.
+                Searching...
               </p>
             )}
 
-          {!loading &&
-            !error &&
-            suggestions.map((book, index) => (
-              <button
-                type="button"
-                className="book-lookup-option"
-                key={
-                  book.externalId ||
-                  `${book.title}-${book.author}-${index}`
-                }
-                onMouseDown={(event) => {
-                  event.preventDefault();
-                }}
-                onClick={() => handleSelect(book)}
-              >
-                {book.coverImage ? (
-                  <img
-                    src={book.coverImage}
-                    alt=""
-                    className="book-lookup-cover"
-                  />
-                ) : (
-                  <div className="book-lookup-cover-placeholder">
-                    No Cover
-                  </div>
-                )}
+            {!loading && error && (
+              <p className="book-lookup-message book-lookup-error">
+                {error}
+              </p>
+            )}
 
-                <span className="book-lookup-details">
-                  <strong>{book.title}</strong>
-                  <span>{book.author}</span>
+            {!loading &&
+              !error &&
+              hasSearched &&
+              suggestions.length === 0 && (
+                <p className="book-lookup-message">
+                  No matching books found.
+                </p>
+              )}
 
-                  {book.publishedDate && (
-                    <small>{book.publishedDate}</small>
+            {!loading &&
+              !error &&
+              suggestions.map((book, index) => (
+                <button
+                  type="button"
+                  className="book-lookup-option"
+                  key={
+                    book.externalId ||
+                    `${book.title}-${book.author}-${index}`
+                  }
+                  onMouseDown={(event) => {
+                    event.preventDefault();
+                  }}
+                  onClick={() =>
+                    handleSelect(book)
+                  }
+                >
+                  {book.coverImage ? (
+                    <img
+                      src={book.coverImage}
+                      alt=""
+                      className="book-lookup-cover"
+                    />
+                  ) : (
+                    <div className="book-lookup-cover-placeholder">
+                      No Cover
+                    </div>
                   )}
-                </span>
-              </button>
-            ))}
-        </div>
-      )}
+
+                  <span className="book-lookup-details">
+                    <strong>{book.title}</strong>
+                    <span>{book.author}</span>
+
+                    {book.genre && (
+                      <small>
+                        {book.genre}
+                      </small>
+                    )}
+
+                    {book.publishedDate && (
+                      <small>
+                        {book.publishedDate}
+                      </small>
+                    )}
+                  </span>
+                </button>
+              ))}
+          </div>
+        )}
     </div>
   );
 }

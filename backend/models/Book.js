@@ -7,6 +7,7 @@ const bookSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+
     title: {
       type: String,
       required: true,
@@ -59,6 +60,11 @@ const bookSchema = new mongoose.Schema(
     },
 
     publisher: {
+      type: String,
+      default: "",
+    },
+
+    publicationDate: {
       type: String,
       default: "",
     },
