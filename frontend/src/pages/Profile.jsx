@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   changePassword,
   updateEmail,
   updateProfile,
 } from "../api/auth";
+import { getBooks } from "../api/books";
+import LibraryExport from "../components/LibraryExport";
+import LibraryImport from "../components/LibraryImport";
 import { useAuth } from "../hooks/useAuth";
 import "./Profile.css";
 
@@ -16,6 +19,8 @@ function Profile() {
   } = useAuth();
 
   const navigate = useNavigate();
+
+  const [books, setBooks] = useState([]);
 
   const [name, setName] = useState(user?.name || "");
   const [newEmail, setNewEmail] = useState("");
@@ -32,6 +37,24 @@ function Profile() {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
 
+  useEffect(() => {
+    async function loadBooks() {
+      try {
+        const data = await getBooks();
+
+        setBooks(
+          Array.isArray(data)
+            ? data
+            : []
+        );
+      } catch {
+        setBooks([]);
+      }
+    }
+
+    loadBooks();
+  }, []);
+
   async function handleNameSubmit(event) {
     event.preventDefault();
 
@@ -44,7 +67,9 @@ function Profile() {
       });
 
       updateUser(data.user);
-      setProfileMessage("Name updated successfully.");
+      setProfileMessage(
+        "Name updated successfully."
+      );
     } catch (error) {
       setProfileError(error.message);
     }
@@ -118,24 +143,32 @@ function Profile() {
         <h2>Personal information</h2>
 
         <form onSubmit={handleNameSubmit}>
-          <label htmlFor="profile-name">Name</label>
+          <label htmlFor="profile-name">
+            Name
+          </label>
 
           <input
             id="profile-name"
             name="name"
             value={name}
-            onChange={(event) => setName(event.target.value)}
+            onChange={(event) =>
+              setName(event.target.value)
+            }
             minLength={2}
             maxLength={80}
             required
           />
 
           {profileError && (
-            <p className="form-error">{profileError}</p>
+            <p className="form-error">
+              {profileError}
+            </p>
           )}
 
           {profileMessage && (
-            <p className="form-success">{profileMessage}</p>
+            <p className="form-success">
+              {profileMessage}
+            </p>
           )}
 
           <button type="submit">
@@ -148,23 +181,29 @@ function Profile() {
         <h2>Email address</h2>
 
         <p>
-          Current email: <strong>{user.email}</strong>
+          Current email:{" "}
+          <strong>{user.email}</strong>
         </p>
 
         <p>
-          Changing your email requires your current password.
-          You will need to sign in again after saving.
+          Changing your email requires your current
+          password. You will need to sign in again
+          after saving.
         </p>
 
         <form onSubmit={handleEmailSubmit}>
-          <label htmlFor="new-email">New email address</label>
+          <label htmlFor="new-email">
+            New email address
+          </label>
 
           <input
             id="new-email"
             name="newEmail"
             type="email"
             value={newEmail}
-            onChange={(event) => setNewEmail(event.target.value)}
+            onChange={(event) =>
+              setNewEmail(event.target.value)
+            }
             autoComplete="email"
             required
           />
@@ -186,7 +225,9 @@ function Profile() {
           />
 
           {emailError && (
-            <p className="form-error">{emailError}</p>
+            <p className="form-error">
+              {emailError}
+            </p>
           )}
 
           <button type="submit">
@@ -250,17 +291,33 @@ function Profile() {
           />
 
           {passwordError && (
-            <p className="form-error">{passwordError}</p>
+            <p className="form-error">
+              {passwordError}
+            </p>
           )}
 
           {passwordMessage && (
-            <p className="form-success">{passwordMessage}</p>
+            <p className="form-success">
+              {passwordMessage}
+            </p>
           )}
 
           <button type="submit">
             Change password
           </button>
         </form>
+      </section>
+
+      <section className="profile-card">
+        <h2>Library Data</h2>
+
+        <h3>Export</h3>
+
+        <LibraryExport books={books} />
+
+        <h3>Import</h3>
+
+        <LibraryImport />
       </section>
 
       <button
