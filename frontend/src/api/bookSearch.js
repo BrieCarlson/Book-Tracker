@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5000/api/book-search";
+const API_URL = "https://book-tracker-0of6.onrender.com/api/book-search";
 
 export async function searchBooks(query, signal) {
   const response = await fetch(

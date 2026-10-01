@@ -1,4 +1,4 @@
-const API_URL = "https://book-tracker-0of6.onrender.com";
+const API_URL = "https://book-tracker-0of6.onrender.com/api/auth";
 
 function getCookie(name) {
   const cookies = document.cookie.split(";");
