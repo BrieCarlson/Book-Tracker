@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import {
+  useNavigate,
+  Link,
+  useLocation,
+} from "react-router-dom";
 import { login } from "../api/auth";
 import { useAuth } from "../hooks/useAuth";
 
@@ -13,7 +17,7 @@ function Login() {
     password: "",
   });
 
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState("");
 
   function handleChange(event) {

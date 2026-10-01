@@ -6,14 +6,17 @@ const SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 
 function getCookieSettings() {
   const configuredSameSite = (
-    process.env.COOKIE_SAME_SITE || "lax"
+    process.env.COOKIE_SAME_SITE ||
+    (process.env.NODE_ENV === "production"
+      ? "none"
+      : "lax")
   ).toLowerCase();
 
   const sameSite = ["lax", "strict", "none"].includes(
     configuredSameSite
   )
     ? configuredSameSite
-    : "lax";
+    : "none";
 
   const secure =
     process.env.NODE_ENV === "production" ||
@@ -45,6 +48,7 @@ function appendSetCookie(res, cookie) {
 
 function serializeCookie(name, value, options = {}) {
   const settings = getCookieSettings();
+
   const parts = [
     `${name}=${encodeURIComponent(value)}`,
     "Path=/",
@@ -72,6 +76,7 @@ function serializeCookie(name, value, options = {}) {
 
 function setAuthCookies(res, token, rememberMe = true) {
   const csrfToken = crypto.randomBytes(32).toString("hex");
+
   const sessionOptions = {
     httpOnly: true,
   };
@@ -88,12 +93,20 @@ function setAuthCookies(res, token, rememberMe = true) {
 
   appendSetCookie(
     res,
-    serializeCookie(SESSION_COOKIE_NAME, token, sessionOptions)
+    serializeCookie(
+      SESSION_COOKIE_NAME,
+      token,
+      sessionOptions
+    )
   );
 
   appendSetCookie(
     res,
-    serializeCookie(CSRF_COOKIE_NAME, csrfToken, csrfOptions)
+    serializeCookie(
+      CSRF_COOKIE_NAME,
+      csrfToken,
+      csrfOptions
+    )
   );
 }
 
@@ -133,6 +146,7 @@ function parseCookies(req) {
     }
 
     const name = part.slice(0, separatorIndex).trim();
+
     const encodedValue = part
       .slice(separatorIndex + 1)
       .trim();
@@ -152,12 +166,17 @@ function getAuthToken(req) {
 }
 
 function hasValidCsrfToken(req) {
-  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
+  if (
+    ["GET", "HEAD", "OPTIONS"].includes(req.method)
+  ) {
     return true;
   }
 
-  const csrfCookie = parseCookies(req)[CSRF_COOKIE_NAME];
-  const csrfHeader = req.headers["x-csrf-token"];
+  const csrfCookie =
+    parseCookies(req)[CSRF_COOKIE_NAME];
+
+  const csrfHeader =
+    req.headers["x-csrf-token"];
 
   if (
     typeof csrfCookie !== "string" ||
@@ -171,7 +190,10 @@ function hasValidCsrfToken(req) {
 
   return (
     cookieBuffer.length === headerBuffer.length &&
-    crypto.timingSafeEqual(cookieBuffer, headerBuffer)
+    crypto.timingSafeEqual(
+      cookieBuffer,
+      headerBuffer
+    )
   );
 }
 
