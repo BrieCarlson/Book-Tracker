@@ -1,55 +1,49 @@
-const API_URL = "https://book-tracker-0of6.onrender.com/api/auth";
+const API_BASE_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:5000"
+    : "https://book-tracker-0of6.onrender.com";
 
-function getCookie(name) {
-  const cookies = document.cookie.split(";");
+const API_URL = `${API_BASE_URL}/api/auth`;
 
-  for (const cookie of cookies) {
-    const separatorIndex = cookie.indexOf("=");
-
-    if (separatorIndex === -1) {
-      continue;
+async function getCsrfToken() {
+  const response = await fetch(
+    `${API_URL}/csrf`,
+    {
+      method: "GET",
+      credentials: "include",
     }
+  );
 
-    const cookieName = cookie
-      .slice(0, separatorIndex)
-      .trim();
+  const data = await response.json().catch(() => ({}));
 
-    if (cookieName !== name) {
-      continue;
-    }
-
-    return decodeURIComponent(
-      cookie.slice(separatorIndex + 1).trim()
+  if (!response.ok || !data.csrfToken) {
+    throw new Error(
+      data.message ||
+        "Unable to get the security token. Please log in again."
     );
   }
 
-  return "";
+  return data.csrfToken;
 }
 
-function getRequestHeaders(options) {
+async function request(path, options = {}) {
+  const method = (options.method || "GET").toUpperCase();
+
   const headers = {
     "Content-Type": "application/json",
     ...options.headers,
   };
 
-  const method = (options.method || "GET").toUpperCase();
-  const csrfToken = getCookie("book_tracker_csrf");
-
   if (
-    !["GET", "HEAD", "OPTIONS"].includes(method) &&
-    csrfToken
+    !["GET", "HEAD", "OPTIONS"].includes(method)
   ) {
-    headers["X-CSRF-Token"] = csrfToken;
+    headers["X-CSRF-Token"] = await getCsrfToken();
   }
 
-  return headers;
-}
-
-async function request(path, options = {}) {
   const response = await fetch(API_URL + path, {
     ...options,
     credentials: "include",
-    headers: getRequestHeaders(options),
+    headers,
   });
 
   const data = await response.json().catch(() => ({}));

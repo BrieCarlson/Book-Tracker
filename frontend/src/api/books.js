@@ -1,8 +1,10 @@
-const API_URL =
-  "https://book-tracker-0of6.onrender.com/api/books";
+const API_BASE_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:5000"
+    : "https://book-tracker-0of6.onrender.com";
 
-const AUTH_API_URL =
-  "https://book-tracker-0of6.onrender.com/api/auth";
+const API_URL = `${API_BASE_URL}/api/books`;
+const AUTH_API_URL = `${API_BASE_URL}/api/auth`;
 
 async function getCsrfToken() {
   const response = await fetch(
