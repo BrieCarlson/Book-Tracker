@@ -165,6 +165,10 @@ function getAuthToken(req) {
   return parseCookies(req)[SESSION_COOKIE_NAME] || null;
 }
 
+function getCsrfToken(req) {
+  return parseCookies(req)[CSRF_COOKIE_NAME] || null;
+}
+
 function hasValidCsrfToken(req) {
   if (
     ["GET", "HEAD", "OPTIONS"].includes(req.method)
@@ -200,6 +204,7 @@ function hasValidCsrfToken(req) {
 module.exports = {
   clearAuthCookies,
   getAuthToken,
+  getCsrfToken,
   hasValidCsrfToken,
   setAuthCookies,
 };

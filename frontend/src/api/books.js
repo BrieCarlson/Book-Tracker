@@ -1,17 +1,28 @@
-const API_URL = "https://book-tracker-0of6.onrender.com/api/books";
+const API_URL =
+  "https://book-tracker-0of6.onrender.com/api/books";
 
-function getCsrfToken() {
-  const cookies = document.cookie.split(";");
+const AUTH_API_URL =
+  "https://book-tracker-0of6.onrender.com/api/auth";
 
-  for (const cookie of cookies) {
-    const [name, ...valueParts] = cookie.trim().split("=");
-
-    if (name === "book_tracker_csrf") {
-      return decodeURIComponent(valueParts.join("="));
+async function getCsrfToken() {
+  const response = await fetch(
+    `${AUTH_API_URL}/csrf`,
+    {
+      method: "GET",
+      credentials: "include",
     }
+  );
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok || !data.csrfToken) {
+    throw new Error(
+      data.message ||
+        "Unable to get the security token. Please log in again."
+    );
   }
 
-  return "";
+  return data.csrfToken;
 }
 
 async function parseResponse(response) {
@@ -26,6 +37,20 @@ async function parseResponse(response) {
   }
 
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error(
+        data.message ||
+          "Your session has expired. Please log in again."
+      );
+    }
+
+    if (response.status === 403) {
+      throw new Error(
+        data.message ||
+          "Security verification failed. Please refresh and try again."
+      );
+    }
+
     if (response.status === 413) {
       throw new Error(
         "The book information is too large. Please shorten the summary, notes, or cover image URL."
@@ -43,6 +68,7 @@ async function parseResponse(response) {
 
 export async function getBooks() {
   const response = await fetch(API_URL, {
+    method: "GET",
     credentials: "include",
   });
 
@@ -50,7 +76,7 @@ export async function getBooks() {
 }
 
 export async function createBook(book) {
-  const csrfToken = getCsrfToken();
+  const csrfToken = await getCsrfToken();
 
   const response = await fetch(API_URL, {
     method: "POST",
@@ -66,7 +92,7 @@ export async function createBook(book) {
 }
 
 export async function updateBook(id, book) {
-  const csrfToken = getCsrfToken();
+  const csrfToken = await getCsrfToken();
 
   const response = await fetch(`${API_URL}/${id}`, {
     method: "PUT",
@@ -82,7 +108,7 @@ export async function updateBook(id, book) {
 }
 
 export async function deleteBook(id) {
-  const csrfToken = getCsrfToken();
+  const csrfToken = await getCsrfToken();
 
   const response = await fetch(`${API_URL}/${id}`, {
     method: "DELETE",

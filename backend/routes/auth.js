@@ -8,6 +8,7 @@ const User = require("../models/User");
 const protect = require("../middleware/authMiddleware");
 const {
   clearAuthCookies,
+  getCsrfToken,
   setAuthCookies,
 } = require("../utils/authCookie");
 
@@ -215,6 +216,21 @@ router.post("/login", loginLimiter, async (req, res) => {
   }
 });
 
+router.get("/csrf", (req, res) => {
+  const csrfToken = getCsrfToken(req);
+
+  if (!csrfToken) {
+    return res.status(403).json({
+      message:
+        "Security token is missing. Please log in again.",
+    });
+  }
+
+  return res.json({
+    csrfToken,
+  });
+});
+
 router.get("/me", protect, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -324,7 +340,8 @@ router.post(
 
       if (newEmail === user.email) {
         return res.status(400).json({
-          message: "That is already your current email address.",
+          message:
+            "That is already your current email address.",
         });
       }
 
@@ -335,7 +352,8 @@ router.post(
 
       if (existingUser) {
         return res.status(409).json({
-          message: "That email address is already in use.",
+          message:
+            "That email address is already in use.",
         });
       }
 
@@ -397,14 +415,16 @@ router.post(
         });
       }
 
-      const currentPasswordMatches = await bcrypt.compare(
-        currentPassword,
-        user.password
-      );
+      const currentPasswordMatches =
+        await bcrypt.compare(
+          currentPassword,
+          user.password
+        );
 
       if (!currentPasswordMatches) {
         return res.status(401).json({
-          message: "Your current password is incorrect.",
+          message:
+            "Your current password is incorrect.",
         });
       }
 
