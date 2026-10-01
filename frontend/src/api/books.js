@@ -1,4 +1,4 @@
-const API_URL = "https://book-tracker-0of6.onrender.com";
+const API_URL = "https://book-tracker-0of6.onrender.com/api/books";
 
 function getCsrfToken() {
   const cookies = document.cookie.split(";");
