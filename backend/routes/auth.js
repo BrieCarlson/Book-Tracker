@@ -31,6 +31,14 @@ const loginLimiter = rateLimit({
   limit: 10,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => {
+    return (
+      process.env.NODE_ENV !== "production" &&
+      process.env.TEST_RATE_LIMIT_KEY &&
+      req.get("X-Test-Rate-Limit-Key") ===
+        process.env.TEST_RATE_LIMIT_KEY
+    );
+  },
   message: {
     message:
       "Too many login attempts. Please try again later.",
